@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="X-CSRF-TOKEN" content="{{csrf_token()}}">
     <title>小明博客</title>
+    <link rel="icon" href="/res/img/xiaoming.jpg" type="image/x-icon" />
     <link rel="stylesheet" type="text/css" href="/res/layui/css/layui.css">
     <link rel="stylesheet" type="text/css" href="/res/css/main.css">
     <!-- <script src="/js/jquery-2.1.4.min.js"></script> -->

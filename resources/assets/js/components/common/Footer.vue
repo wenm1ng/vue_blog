@@ -6,7 +6,7 @@
             <img src="/res/img/erweima.jpg" style="width:160px">
           </div>
           <div class="practice-mode">
-            <img src="/res/img/down_img.jpg">
+            <img src="/res/img/xiaoming.jpg" style="width:100px">
             <div class="text">
               <h4 class="title">我的联系方式</h4>
               <p>微信<span class="WeChat">Ccivilization</span></p>

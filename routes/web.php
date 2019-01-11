@@ -14,15 +14,15 @@
 Route::group(['namespace' => 'Home'],function(){
 	Route::post('/index','IndexController@index');
 	Route::post('/article/index','ArticleController@index');
+	Route::get('/article/{id}','ArticleController@article')->where('id','[0-9]+');
+	Route::post('/article/reply','ArticleController@reply');
 });
 
 Route::get('/',function(){
 	return view('home.index');
 });
 
-Route::get('/article/{id}',function($id){
-	return view('home.article',['id'=>$id]);
-})->where('id','[0-9]+');
+
 
 Route::get('/404',function(){
 	return view('home.404');

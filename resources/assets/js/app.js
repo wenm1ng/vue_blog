@@ -15,7 +15,9 @@ window.Vue = require('vue');
 
 Vue.component('index', require('./components/Index.vue'));
 Vue.component('foot', require('./components/common/Footer.vue'));
-Vue.component('article', require('./components/Article.vue'));
+Vue.component('articles', require('./components/Articles.vue'));
+Vue.component('article_child', require('./components/Article_child.vue'));
+Vue.component('comments', require('./components/Comments.vue'));
 
 // import Vue from 'vue';
 import ElementUI from 'element-ui'    //引入element－ui
@@ -25,5 +27,8 @@ Vue.use(ElementUI)    //把引入的ElementUI装入我们的Vue
 
 const app = new Vue({
     el: '#app',
-    
 });
+
+const comment = new Vue({
+	el:'#comment',
+})
