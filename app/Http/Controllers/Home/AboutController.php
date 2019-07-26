@@ -6,33 +6,16 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 use Config;
 
-class ArticleController extends BaseController
+class AboutController extends BaseController
 {
 	public function index(Request $request){
 		
 		//获取文章详情
-		$list = DB::table('article_comment')
-		->where('article_id','=',$request->id)
+		$list = DB::table('skill')
 		->get()->toArray();
 		$list = $this->obj_to_array($list);
-		
-		$arr = array();
-		foreach ($list as $key => $val) {
-			$list[$key]['child'] = array();
-			if($val['is_reply'] == 0){
-				$arr['c_'.$val['comment_id']] = $val;
-			}else{
-				$arr['c_'.$val['link_comment_id']]['child'][] = $val;
-			}
-		}
-		
-		$count = DB::table('article_comment')->where('article_id','=',$request->id)->count();
 
-		if(empty($arr)){
-			return response()->json(['status'=>0,'msg'=>'暂无数据','data'=>array(),'count'=>0]);
-		}else{
-			return response()->json(['status'=>1,'msg'=>'返回成功','data'=>$arr,'count'=>$count]);
-		}
+		return view('home.about',['list'=>$list]);
 		
 	}
 

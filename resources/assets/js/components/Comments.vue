@@ -13,7 +13,8 @@
 	</div>
 </template>
 <script >
-    import $ from 'jquery'
+    import $ from 'jquery';
+    import bus from '../../eventBus';
     export default {
         created(){
             
@@ -38,17 +39,16 @@
                 this.is_show = !this.is_show;
             },
             post_comment:function(){
-            	let that = this;
-            	let url = "/article/reply";
-            	axios.post(url,{article_id:this.article_id,link_comment_id:this.link_comment_id,content:this.content,to_user_id:this.to_user_id,to_user_name:this.to_user_name,is_reply:this.is_reply},{emulateJSON:true}).then(function(res){
-            		if(res.data.status == 1){
-                    	that.is_show = !that.is_show;
-                    	that.content = '';
-                    	that.$emit('post_comment',res.data.data);
-            		}
-                });
-
-             	
+            	if(this.content != ''){
+            		let that = this;
+	            	let url = "/article/reply";
+	            	axios.post(url,{article_id:this.article_id,link_comment_id:this.link_comment_id,content:this.content,to_user_id:this.to_user_id,to_user_name:this.to_user_name,is_reply:this.is_reply},{emulateJSON:true}).then(function(res){
+	            		if(res.data.status == 1){
+	                    	that.content = '';
+	                    	bus.$emit('comment_fun',res.data.data);
+	            		}
+	                });
+            	}
             }
         }
     };

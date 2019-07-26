@@ -15,17 +15,24 @@
                   </div>
                   	{!! $info['content'] !!}
                   <div class="btn-box">
-                    <button class="layui-btn layui-btn-primary">上一篇</button>
-                    <button class="layui-btn layui-btn-primary">下一篇</button>
+                    @if(empty($before_id))
+                    <span style="margin-right:5px">上一篇没有了</span>
+                    @else
+                    <a href="/article/{{$before_id}}" class="layui-btn layui-btn-primary">上一篇</a>
+                    @endif
+                    @if(empty($after_id))
+                    <span style="margin-left:5px">下一篇没有了</span>
+                    @else
+                    <a href="/article/{{$after_id}}" class="layui-btn layui-btn-primary">下一篇</a>
+                    @endif
                   </div>
                 </div>
-                <div id="comment">
-                  <comment></comment>
-                </div>
+
              </div>
           	<div id="app">
-			         <articles></articles>
-			       </div>
+              <comments></comments>
+			        <articles></articles>
+			      </div>
           </div>
         </div>
     </div>

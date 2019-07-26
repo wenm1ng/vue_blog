@@ -10,6 +10,7 @@
     <link rel="stylesheet" type="text/css" href="/res/layui/css/layui.css">
     <link rel="stylesheet" type="text/css" href="/res/css/main.css">
     <!-- <script src="/js/jquery-2.1.4.min.js"></script> -->
+    @yield('style')
 </head>
 <body>
     <div class="header">
@@ -27,17 +28,19 @@
           <a href="whisper.html">微语</a>
           <a href="leacots.html">留言</a>
           <a href="album.html">相册</a>
-          <a href="about.html">关于</a>
+          <a href="/about">关于</a>
         </div>
         <ul class="layui-nav header-down-nav" id="title">
           <li class="layui-nav-item"><a href="/" class="active">文章</a></li>
           <li class="layui-nav-item"><a href="whisper.html">微语</a></li>
           <li class="layui-nav-item"><a href="leacots.html">留言</a></li>
           <li class="layui-nav-item"><a href="album.html">相册</a></li>
-          <li class="layui-nav-item"><a href="about.html">关于</a></li>
+          <li class="layui-nav-item"><a href="/about">关于</a></li>
         </ul>
         <p class="welcome-text">
-          欢迎来到<span class="name">小明</span>博客~
+          欢迎来到<span class="name">小明</span>博客~&nbsp;&nbsp;
+          <!-- <a href="#" >登录</a>
+          <img src="/images/qq.jpg" alt="" style="margin-bottom:7%"> -->
         </p>
     </div>
 @yield('body')

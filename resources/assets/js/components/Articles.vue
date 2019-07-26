@@ -1,14 +1,14 @@
 <template>
-	<div v-if="list">
+	<div>
 		<div class="content whisper-content leacots-content details-content">
-		    <div class="cont w1000">
+		    <div class="cont w1000" v-if="list">
 		      <div class="whisper-list">
 		        <div class="item-box">
 		          <div class="review-version">
 		              <div class="volume">
 		                全部留言 <span>{{ count }}</span>
 		              </div>
-		              <div class="list-cont" style="border-bottom: 1px solid #e5e5e5;" v-for="val in list">
+		              <div class="list-cont" style="border-bottom: 1px solid #e5e5e5;" v-for="val in list_fun">
 		                
 		                <div class="cont" style="border-bottom: none">
 		                  <div class="img">
@@ -31,7 +31,7 @@
                             <p class="ct">{{ child.content }}</p>
                           </div>
                             <article_child :article_id="child.article_id" :to_user_id="child.to_user_id" :to_user_name="child.user_name" :link_comment_id="val.comment_id" @post_comment="post_comment"></article_child>
-                      </div>
+                        </div>
 		              </div>
 		          </div>
 		        </div>
@@ -41,27 +41,15 @@
     		<foot></foot>
 
 		  </div>
-		  <script type="text/html" id="laytplCont">
-		    <div class="cont">
-		      <div class="img">
-		        <img src="/res/img/header.png" alt="">
-		      </div>
-		      <div class="text">
-		        <p class="tit"><span class="name">ggggg</span><span class="data">ggggg</span></p>
-		        <p class="ct">hhhhh</p>
-		      </div>
-		    </div>
-		  </script>
 		  
 	</div>
 </template>
 
 <script >
-    import $ from 'jquery'
+    import $ from 'jquery';
+    import bus from '../../eventBus';
     export default {
-        // components:{
-        //   Footer,
-        // },
+        // props:['list','count'],
         created(){
             $("#menu").click(function(){
                 if($("#title").css('display') == 'block'){
@@ -74,6 +62,23 @@
         },
         mounted() {
             var self = this;
+            var val = self.list;
+            bus.$on('comment_fun',(res)=>{
+                // if(val.length == 0){
+                //     console.log(111);
+                //    var arr = [];
+                //    arr.push(res);
+                //     Vue.set(arr,res['comment_id'],res);
+                //    self.list = arr;
+                //    console.log(self.list);
+                // }else{
+                //     // console.log(222);
+                //     Vue.set(self.list,res['comment_id'],res);
+                // }
+                Vue.set(self.list,'c_'+res['comment_id'],res);
+                self.count++;
+                // that.splice(parseInt(res['comment_id']),0,res);
+            })
             // var is_scroll = true;
             // $(window).scroll(function(){
             //     let scrollTop = $(this).scrollTop();
@@ -112,6 +117,16 @@
             //     }
             // })
         },
+        computed:{
+            list_fun:function(){
+                var list = [];
+                for(var i in this.list){
+                    list.unshift(this.list[i]);
+                }
+                console.log(list);
+                return list;
+            }
+        },
         data(){
             return {
                 id:$("#article_id").val(),
@@ -139,7 +154,8 @@
                 this.is_show = !this.is_show;
             },
             post_comment:function(res){
-                this.list[res['link_comment_id']]['child'].push(res);
+                this.list['c_'+res['link_comment_id']]['child'].push(res);
+                this.count++;
             }
             
         }

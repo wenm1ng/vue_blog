@@ -28,7 +28,3 @@ Vue.use(ElementUI)    //把引入的ElementUI装入我们的Vue
 const app = new Vue({
     el: '#app',
 });
-
-const comment = new Vue({
-	el:'#comment',
-})
