@@ -1,0 +1,65 @@
+
+<title>账号管理</title>
+<div class="layui-card layadmin-header">
+  <div class="layui-breadcrumb" lay-filter="breadcrumb">
+    <a>系统管理</a>
+    <a>账号管理</a>
+  </div>
+</div>
+<div class="layui-fluid">
+  <div class="layui-row layui-col-space15">
+    <div class="layui-col-md12">
+      <div class="layui-card">
+
+        <div class="layui-form layui-card-header layuiadmin-card-header-auto" lay-filter="app-content-list">
+          <div class="layui-form-item">           
+              <div class="layui-inline" style="float: right;">         
+                <button lay-href="system/account/add" class="layui-btn layuiadmin-btn-list"><i class="layui-icon layui-icon-add-1 layuiadmin-button-btn"></i>新建账号</button>
+              </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="layui-col-md12">
+      <div class="layui-card">
+        <div class="layui-card-body">
+            <table class="layui-hide" id="LAY-account-index-table" lay-filter="LAY-account-index-table"></table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script type="text/html" id="LAY-account-index-caozuo">
+	{{# if(d.id != 1){ }}
+	  	<a class="layui-btn layui-btn-xs" lay-href="system/account/edit/id={{d.id}}">编辑</a>
+	{{# }else{ }}
+	  	<a class="layui-btn layui-btn-xs layui-btn-disabled">编辑</a>
+	{{# } }}                    
+</script> 
+
+<script>
+layui.use(['admin', 'table', 'form'], function(){
+  var $ = layui.$
+  ,admin = layui.admin
+  ,table = layui.table
+  ,form = layui.form
+  ,router = layui.router();
+  form.render();
+
+  table.render({
+    elem: '#LAY-account-index-table'
+    ,url:layui.setter.api+'common-account_list'
+    ,cellMinWidth: 80
+    ,cols: [[
+      {field:'nickname', title:'昵称', unresize: false}
+      ,{field:'username', title:'登录账号', unresize: false}
+      ,{field:'name', title:'角色类型', unresize: false, sort: true}
+      ,{field:'status_name', title:'状态', unresize: false}
+      ,{field:'create_time', title:'创建时间', unresize: false}
+      ,{ align:'left',width:150, title:'操作', fixed: 'right', toolbar: '#LAY-account-index-caozuo'}
+      
+    ]]
+    ,page: true
+  }); 
+});
+</script>

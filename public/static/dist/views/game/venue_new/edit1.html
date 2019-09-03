@@ -1,0 +1,78 @@
+<!-- <script type="text/html" template>
+    <input type="hidden" id="game_venue_id" value="{{d.params.id}}">
+</script> -->
+
+<div class="layui-row">
+    <div class="layui-col-md3 layui-col-md-offset2">
+        <script type="text/html" template>
+            场次id:{{d.params.venue_id}}
+        </script>
+    </div>
+    <div class="layui-col-md7">
+        <script type="text/html" template>
+            所属游戏:{{d.params.name}}
+        </script>
+    </div>
+</div>
+
+<div class="layui-form" lay-filter="layuiadmin-form-edit1" style="padding: 20px 0 0 0;">
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">介绍</label>
+        <div class="layui-form-mid">
+            <div class="layui-row" style="color: red;">
+                注：1、暂不支持视频和音频的上传&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2、上传图片不能大于2M
+            </div>
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">背景色</label>
+        <div class="layui-input-inline">
+            <input type="text" name="background_color" value="" placeholder="请输入" autocomplete="off" class="layui-input">
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <!-- <label class="layui-form-label"></label> -->
+        <div class="layui-input-inline">
+            <script id="editor" type="text/plain" style="height:450px;width: 660px;"></script>
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label"></label>
+        <div class="layui-input-inline" style="margin-left: 130px">
+            <input type="button" lay-submit lay-filter="LAY-user-back-submit" value="确认" class="layui-btn" style="width: 150px;">
+        </div>
+    </div>
+
+</div>
+
+<script>
+
+    layui.use(['admin', 'form', 'upload'], function(){
+        var $ = layui.$
+        ,upload = layui.upload
+        ,admin = layui.admin
+        ,form = layui.form;
+
+        UE.delEditor('editor');
+        var ue = UE.getEditor('editor');
+
+        // var game_venue_id_new = $('#game_venue_id').val();
+        var game_venue_id = top.id;
+
+        admin.req({
+            url:layui.setter.api+'venue-venue_introduce',
+            data: {id:game_venue_id},
+            done: function(data){
+                var res = data.data;
+                ue.ready(function() {
+                    ue.setContent(res.intro_info);
+                });
+                $("input[name='background_color']").val(res.background_color); // 设置
+            }
+        });
+    });
+</script>

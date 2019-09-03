@@ -1,0 +1,358 @@
+
+<title>金币数据</title>
+
+<div class="layui-card layadmin-header">
+  <div class="layui-breadcrumb" lay-filter="breadcrumb">
+    <a>数据分析</a>
+    <a>金币数据</a>
+  </div>
+</div>
+<div class="layui-fluid">
+  <div class="layui-row layui-col-space15">
+    <div class="layui-col-md12">
+      <div class="layui-card">
+        <!-- <div class="layui-card-header"> -->
+          <div class="layui-inline" style="float: right;top: 15px;right: 30px;z-index: 1;">         
+            <button class="layui-btn layuiadmin-btn-list" onclick="exportExcel()"><i class="layui-icon layui-icon-table layuiadmin-button-btn"></i>导出Excel</button>
+          </div>
+        <!-- </div> -->
+        <div class="layui-card-body">        
+          <div class="layui-tab layui-tab-brief" lay-filter="TabBrief" style="padding-top: 5px;">
+            <ul class="layui-tab-title">
+              <li class="layui-this">数据汇总</li>
+              <li>发放详情</li>
+              <li>回收详情</li>
+            </ul>
+            <div class="layui-tab-content">
+              <div class="layui-tab-item layui-show"><table class="layui-hide" id="LAY-summary-table" lay-filter="LAY-summary-table"></table></div>
+              <div class="layui-tab-item">
+                <div class="layui-form">
+                  <div class="layui-form-item">           
+                    <div class="layui-input-inline" style="width:500px">
+                      <select name="grant_select" lay-filter="grant" lay-search></select>
+                    </div>
+                    <div class="layui-form-mid layui-word-aux layui-fluid">
+                      <div class="layui-row" style="color: #1E9FFF">可检索查询</div>
+                    </div>                    
+                  </div>
+                </div>      
+                <table class="layui-hide" id="LAY-grant-table" lay-filter="LAY-grant-table"></table>
+              </div>
+              <div class="layui-tab-item">
+                <div class="layui-form">
+                  <div class="layui-form-item">           
+                   <div class="layui-input-inline">
+                      <select name="recovery_select" lay-filter="recovery">
+                        <option value="105" selected>台费统计</option>
+                      </select>
+                    </div>
+                    <div class="layui-input-inline" style="width: 350px">
+                        <input type="text" class="layui-input" id="date" name="date" placeholder="统计时间" autocomplete="off" readonly>
+                    </div>                  
+                  </div>
+                </div>              
+                <table class="layui-hide" id="LAY-recovery-table" lay-filter="LAY-recovery-table"></table>              
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+layui.use(['admin', 'table', 'form','element','laydate'], function(){
+  var $ = layui.$
+  ,admin = layui.admin
+  ,table = layui.table
+  ,form = layui.form
+  ,element = layui.element
+  ,excel = layui.excel
+  ,laydate = layui.laydate;
+  form.render();
+  var summary_data = [];
+  var grant_data = [];
+  var recovery_data = [];
+
+  //数据汇总表格<-------------------数据汇总----------------------------->
+  table.render({
+    elem: '#LAY-summary-table'
+    ,url:layui.setter.api+'data-gold_summary_list'
+    ,cellMinWidth: 80
+    ,cols: [[
+      {field:'datetime', title:'日期', unresize: false}
+      ,{field:'amount105', title:'玩家台费总额', unresize: false}
+      ,{field:'amountRobot', title:'机器人对局金额', unresize: false}
+      ,{field:'amount108', title:'签到发放', unresize: false}
+      ,{field:'amount103001', title:'破产补助', unresize: false}
+      ,{field:'amountTask', title:'任务发放', unresize: false}
+      ,{field:'', title:'道具兑换金币', unresize: false}
+      ,{field:'', title:'钻石兑换金币', unresize: false}
+    ]]
+    ,page: true
+    ,done:function(res, curr, count){
+      summary_data = res.data;
+    }    
+  });
+
+  //发放详情表格<-------------------发放详情----------------------------->
+  //表头
+  var grant_cols = [[
+                    {field:'grant_datetime', title:'日期', unresize: false}
+                    ,{field:'total_cuid', title:'总人数', unresize: false}
+                    ,{field:'total_cid', title:'总次数', unresize: false}
+                    ,{field:'per_capita_cid', title:'人均次数', unresize: false}
+                    ,{field:'total_amount', title:'总金额', unresize: false}
+                    ,{field:'per_capita_amount', title:'人均金额', unresize: false}
+                  ]]
+  //发放详情监听select
+  form.on('select(grant)', function(data){
+    let select_value = parseInt(data.value);
+    if(select_value == 103001 || (select_value >= 1110000 && select_value <= 1120000)){
+      grant_cols = [[
+                    {field:'grant_datetime', title:'日期', unresize: false}
+                    ,{field:'total_cuid', title:'总人数', unresize: false}
+                    ,{field:'total_cid', title:'总次数', unresize: false}
+                    ,{field:'per_capita_cid', title:'人均次数', unresize: false}
+                    ,{field:'total_amount', title:'总金额', unresize: false}
+                    ,{field:'per_capita_amount', title:'人均金额', unresize: false}
+                  ]]
+      
+    }else if(select_value == 108){
+      grant_cols = [[
+                    {field:'grant_datetime', title:'日期', unresize: false}
+                    ,{field:'total_cuid', title:'总人数', unresize: false}
+                    ,{field:'total_cid', title:'总次数', unresize: false}
+                    ,{field:'per_capita_cid', title:'人均次数', unresize: false}
+                    ,{field:'total_amount', title:'总金额', unresize: false}
+                    ,{field:'per_capita_amount', title:'人均金额', unresize: false}
+                    ,{field:'gift1', title:'签到大礼包1', unresize: false}
+                    ,{field:'gift2', title:'签到大礼包2', unresize: false}
+                    ,{field:'gift3', title:'签到大礼包3', unresize: false}
+                    ,{field:'gift4', title:'签到大礼包4', unresize: false}                    
+                  ]]
+    }
+    grant_table(select_value,2)    
+  });
+  function grant_table(g_type,num){
+    table.render({
+      elem: '#LAY-grant-table'
+      ,where:{value:g_type}
+      ,url:layui.setter.api+'data-gold_grant_list'
+      ,cellMinWidth: 80
+      ,cols: grant_cols 
+      ,page: true
+      ,done:function(res, curr, count){
+        grant_data = res.data;
+        if(num == 1){
+          let div = ''
+          layui.each(res.selectList,function(k,v){
+            div += '<option value="'+v.flow_type+'">'+v.name+'</option>'
+          })
+          $('[name="grant_select"]').html(div)
+          form.render('select');  
+        }
+      }    
+    });   
+  }
+  grant_table(103001,1)     
+  
+  //回收详情表格<-------------------回收详情----------------------------->
+  var myDate = new Date;
+  var toyear = myDate.getFullYear();//获取当前年  
+  Date.prototype.format = function() {
+    var s = '';
+    // s += this.getFullYear() + '-'; // 获取年份。
+    if((this.getMonth() + 1) >= 10) {// 获取月份。
+      s += (this.getMonth() + 1) + "-";
+    } else {
+      s += "0" + (this.getMonth() + 1) + "-";
+    }
+    if(this.getDate() >= 10) {// 获取日。
+      s += this.getDate();
+    } else {
+      s += "0" + this.getDate();
+    }
+    return(s); // 返回日期。
+  };
+ 
+  //两个日期区间内的所有日期
+  function getAll(begin, end) {
+    var ab = begin.split("-");
+    var ae = end.split("-");
+    var db = new Date();
+    db.setUTCFullYear(ab[0], ab[1] - 1, ab[2]);
+    var de = new Date();
+    de.setUTCFullYear(ae[0], ae[1] - 1, ae[2]);
+    var unixDb = db.getTime();
+    var unixDe = de.getTime();
+    var begin_reduce_year = begin.replace(toyear+'-','')
+    var end_reduce_year = end.replace(toyear+'-','')
+    var str = [begin_reduce_year];
+    for(var k = unixDb + 24 * 60 * 60 * 1000; k < unixDe;) {
+      str.push((new Date(parseInt(k))).format())
+      k = k + 24 * 60 * 60 * 1000;
+    }
+    str.push(end_reduce_year)
+    return str;
+  }
+
+  //计算第N天的日期
+  function default_start_end_date(day){
+
+    var now = new Date();
+    now = new Date(now.getTime() + 86400*day*1000);
+    var year= now.getFullYear(), month= (now.getMonth() + 1).toString(), day = now .getDate().toString();
+    if (month.length == 1) {
+      month= '0' + month;
+    }
+    if (day .length == 1) {
+        day = '0' + day ;
+    }
+    return year+ '-' + month+ '-' + day;
+  }
+    
+  // 日期时间范围
+  var alldate       = []
+  var default_end = default_start_end_date(-1);
+  var default_start  = default_start_end_date(-20);
+  var date_value    = default_start +' - '+ default_end //日期区间初始值
+
+  //组合表头  
+  var cols = [] 
+  function combination_head(default_start,default_end){
+    cols = []
+    cols.push({field: 'game_name',fixed:'left', title: '游戏\/日期（ '+toyear+'年 ）', unresize: false,width:180});
+    alldate = getAll(default_start, default_end);        
+    $.each(alldate,function(k,v){
+      cols.push({field: v, title: alldate[k], unresize: false});
+    })   
+  }
+  combination_head(default_start,default_end)
+
+  //日期搜索框
+  var date_range = laydate.render({
+      elem: '#date'
+      ,type: 'date'
+      ,value: date_value
+      ,max: -1 //昨天
+      ,range: true
+      ,change: function(value, date, endDate){
+        var d = value.split(' - ');
+        let s = new Date(d[0]);
+        let e = new Date(d[1]);
+              //计算两个时间间隔天数
+        var d=(e-s)/(1000*60*60*24);        
+        if(d>=20){
+          date_range.hint('最多选择20天');
+          // date_range.istoday = true
+          setTimeout(function () { $('.laydate-footer-btns span').eq(1).addClass('laydate-disabled') },10);
+        } 
+      }
+      ,done:function(res){
+        let d = res.split(' - ');
+        combination_head(d[0],d[1])
+        recovery_table()       
+      }
+  });
+
+  //回收详情监听select
+  // form.on('select(recovery)', function(data){
+  //   table.reload('LAY-recovery-table', {
+  //       where:{
+  //         value: data.value,
+  //       }
+  //       ,page: {
+  //           curr: 1 //重新从第 1 页开始
+  //       }
+  //       ,done:function(){
+  //       }
+  //   });    
+  // });
+  
+  //加载table 
+  function recovery_table(){
+    table.render({
+      elem: '#LAY-recovery-table'
+      ,where:{value:$('[name="recovery_select"]').val(),time:date_value}
+      ,url:layui.setter.api+'data-gold_recovery_list'
+      ,cellMinWidth: 100
+      ,cols: [cols]
+      ,page: true
+      ,done:function(res, curr, count){
+        recovery_data = res.data;
+      }      
+    });  
+  }
+  recovery_table()
+
+  //tab切换<-------------------综合----------------------------->
+  var indexTab = 0;
+  element.on('tab(TabBrief)', function(data){
+    indexTab = data.index
+  });
+  //导出Excel
+  window.exportExcel = function(){    
+    if(indexTab == 0){
+      let filed_data = {datetime: 'datetime',amount105: 'amount105',amountRobot: 'amountRobot',amount108: 'amount108',amount103001: 'amount103001'}
+      let filed_title = { datetime: "日期",amount105: "玩家台费总额",amountRobot: "机器人对局金额",amount108: "签到发放",amount103001: "破产补助"}
+      exportFile('数据汇总',filed_data,filed_title,summary_data)
+    }else if(indexTab == 1){
+      let grant_select = parseInt($('[name="grant_select"]').val())
+      if(grant_select == 103001){
+        let filed_data = {grant_datetime: 'grant_datetime',total_cuid: 'total_cuid',total_cid: 'total_cid',per_capita_cid: 'per_capita_cid',total_amount: 'total_amount',per_capita_amount: 'per_capita_amount'}
+        let filed_title = { grant_datetime: "日期",total_cuid: "总人数",total_cid: "总次数",per_capita_cid: '人均次数',total_amount: '总金额',per_capita_amount: '人均金额'}
+        exportFile('发放详情(破产补助)',filed_data,filed_title,grant_data)
+      }else if(grant_select == 108){
+        let filed_data = {grant_datetime: 'grant_datetime',total_cuid: 'total_cuid',total_cid: 'total_cid',per_capita_cid: 'per_capita_cid',total_amount: 'total_amount',per_capita_amount: 'per_capita_amount',gift1: 'gift1',gift2: 'gift2',gift3: 'gift3',gift4: 'gift4'}
+        let filed_title = { grant_datetime: "日期",total_cuid: "总人数",total_cid: "总次数",per_capita_cid: '人均次数',total_amount: '总金额',per_capita_amount: '人均金额',gift1: '签到大礼包1',gift2: '签到大礼包2',gift3: '签到大礼包3',gift4: '签到大礼包4'}
+        console.log(grant_data)
+        exportFile('发放详情(签到发放)',filed_data,filed_title,grant_data)
+      }else{
+        layer.msg('嘿嘿，这个分类是假的，不能导出', {icon: 5})
+      }
+
+    }else if(indexTab == 2){
+      let recovery_select = parseInt($('[name="recovery_select"]').val())
+      if(recovery_select == 105){
+
+        let filed_data = {game_name:'game_name'}
+        let filed_title = {game_name:'游戏\/日期（ '+toyear+'年 ）'}
+
+          $.each(alldate,function(date_k,date_v){
+            filed_data[date_v] = date_v
+            filed_title[date_v] = date_v
+          })
+        exportFile('回收详情',filed_data,filed_title,recovery_data)        
+      }else{
+        layer.msg('嘿嘿，这个分类是假的，不能导出', {icon: 5})
+      }      
+    }
+
+  }
+  //表格导出
+  function exportFile(describe,filed_data,filed_title,export_data) {
+    layer.confirm(describe+'导出?', {icon: 3, title:'提示(只导出当前页面数据)'}, function(index){
+        let data = export_data;
+        // 重点！！！如果后端给的数据顺序和映射关系不对，请执行梳理函数后导出
+        data = excel.filterExportData(data, filed_data);
+        // 重点2！！！一般都需要加一个表头，表头的键名顺序需要与最终导出的数据一致
+        data.unshift(filed_title);
+
+        var timestart = Date.now();
+        excel.exportExcel({
+          sheet1: data
+        }, describe+'-' + new Date().toLocaleString() + '.xlsx', 'xlsx');
+        var timeend = Date.now();
+
+        var spent = (timeend - timestart) / 1000;
+        layer.alert('单纯导出耗时 '+spent+' s',function(){
+          layer.closeAll();
+        });
+        
+    });
+
+  }
+
+});
+</script>

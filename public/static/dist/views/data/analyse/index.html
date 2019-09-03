@@ -1,0 +1,177 @@
+
+<title>数据分析</title>
+<style>
+/* 防止下拉框的下拉列表被隐藏---必须设置--- */
+.layui-table-cell {
+  height: auto;
+            /*空白会被浏览器忽略*/
+  white-space: normal;
+            /*允许长单词换行到下一行*/
+  word-wrap: break-word;
+            /*允许在单词内换行*/
+  word-break: break-all;
+  overflow: visible;
+  min-height: 28px;
+}
+
+.layui-table-box {
+    overflow: visible;
+}
+
+.layui-table-body {
+    overflow: visible;
+}
+/* 设置下拉框的高度与表格单元相同 */
+td .layui-form-select{
+  margin-top: -10px;
+  margin-left: -15px;
+  margin-right: -15px;
+}
+
+
+.play_type_table>.layui-form{
+  height: auto;
+}
+
+#add_service_div .layui-form-label{
+  width: 140px;
+}
+
+/* #add_service_div .layui-input-block{
+  width: 100px;
+} */
+</style>
+<div class="layui-card layadmin-header">
+  <div class="layui-breadcrumb" lay-filter="breadcrumb">
+    <a>数据分析</a>
+    <a>数据分析</a>
+  </div>
+</div>
+<div class="layui-fluid">
+  <div class="layui-row layui-col-space15">
+    <div class="layui-col-md12">
+      <div class="layui-card">
+        <div class="layui-form layui-card-header layuiadmin-card-header-auto" lay-filter="app-content-list">
+          <div class="layui-form-item">
+            <div class="layui-input-inline">
+                <input type="text" name="game_name" placeholder="游戏名称" autocomplete="off" class="layui-input">
+            </div>
+            <div class="layui-input-inline">
+                <input type="text" name="venue_name" placeholder="场次名称" autocomplete="off" class="layui-input">
+            </div>
+            <div class="layui-input-inline">
+              <select name="user_type" lay-verify="">
+                <option value="">用户类型</option>
+                <option value="1">普通用户</option>
+                <option value="2">机器人</option>
+              </select> 
+            </div>
+            <div class="layui-input-inline">
+              <select name="flow_type" lay-verify="">
+                <option value="">变动类型</option>
+                <option value="100">打牌结算</option>
+                <option value="101">打牌中途结算</option>
+                <option value="102">充值</option>
+                <option value="103001">破产补助</option>
+                <option value="104">机器人增减金币</option>
+                <option value="105">房费</option>
+                <option value="106">抽水</option>
+                <option value="107">后台增减金币</option>
+              </select> 
+            </div>
+            
+            <div class="layui-input-inline" style="width: 350px">
+                <input type="text" class="layui-input" id="datetime" name="datetime" placeholder="统计时间">
+            </div>
+            <div class="layui-input-inline">
+                <button class="layui-btn layuiadmin-btn-list" lay-submit="" lay-filter="LAY-search">
+                    <i class="layui-icon layui-icon-search layuiadmin-button-btn"></i>
+                </button>
+            </div>
+          </div>
+        </div>
+        <div class="layui-card-body">
+            <table class="layui-hide" id="LAY-table" lay-filter="LAY-table"></table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="layui-fluid" id="log_div" style="display: none">
+  <div class="layui-row layui-col-space15">
+    <div class="layui-col-md12">
+      <div class="layui-card">
+        <div class="layui-card-body">
+            <table class="layui-hide" id="LAY-update-table" lay-filter="LAY-update-table"></table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+layui.use(['admin', 'table', 'form','laydate'], function(){
+  var $ = layui.$
+  ,admin = layui.admin
+  ,table = layui.table
+  ,form = layui.form
+  ,laydate = layui.laydate
+  ,router = layui.router();
+  form.render();
+
+  // 日期时间范围
+  laydate.render({
+      elem: '#datetime'
+      ,type: 'date'
+      ,range: true
+  });
+
+  //监听搜索
+  form.on('submit(LAY-search)', function(data){
+      table.reload('LAY-table', {
+          where:{
+            venue_name: data.field.venue_name,
+            game_name: data.field.game_name,
+            user_type: data.field.user_type,
+            flow_type: data.field.flow_type,
+            datetime: data.field.datetime,
+          }
+          ,page: {
+              curr: 1 //重新从第 1 页开始
+          }
+          ,done:function(){
+          }
+      });
+  });
+
+  table.render({
+    elem: '#LAY-table'
+    ,url:layui.setter.api+'data-analyse_list'
+    ,cellMinWidth: 80
+    ,cols: [[
+      {field:'id', title:'序号', unresize: false}
+      ,{field:'game_name', title:'游戏名称', unresize: false}
+      ,{field:'venue_name', title:'场次名称', unresize: false}
+      ,{field:'user_type_name', title:'用户类型', unresize: false}
+      ,{field:'flow_type_name', title:'变动类型', unresize: false}
+      ,{field:'amount', title:'统计值', unresize: false}
+      ,{field:'datetime', title:'统计日期', unresize: false}
+    ]]
+    ,page: true
+  }); 
+  // console.log(layui.setter.api+'data-analyse_task');
+   // admin.req({
+   //    url: layui.setter.api+'data-analyse_task',
+   //    type: 'post',
+   //    done: function(res){
+   //      setTimeout(function(){
+   //          layer.close(loading);
+   //          layer.msg(res.msg, {icon: 1},function(){
+   //            layer.close(index);
+   //            table.reload('LAY-activity-table');
+   //          })
+   //      },500)
+   //    }
+   //  });
+});
+</script>

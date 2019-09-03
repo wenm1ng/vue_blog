@@ -1,0 +1,146 @@
+<!-- <script type="text/html" template>
+    <input type="hidden" id="game_venue_id" value="{{d.params.id}}">
+</script> -->
+<style>
+    /* 防止下拉框的下拉列表被隐藏---必须设置--- */
+    .layui-table-cell {
+      height: auto;
+                /*空白会被浏览器忽略*/
+      white-space: normal;
+                /*允许长单词换行到下一行*/
+      word-wrap: break-word;
+                /*允许在单词内换行*/
+      word-break: break-all;
+      overflow: visible;
+      min-height: 28px;
+    }
+
+    .layui-table-box {
+        overflow: visible;
+    }
+
+    .layui-table-body {
+        overflow: visible;
+    }
+    /* 设置下拉框的高度与表格单元相同 */
+    td .layui-form-select{
+      margin-top: -10px;
+      margin-left: -15px;
+      margin-right: -15px;
+    }
+
+
+    .play_type_table>.layui-form{
+      height: auto;
+    }
+
+    #add_service_div .layui-form-label{
+      width: 140px;
+    }
+</style>
+<div class="layui-row">
+    <div class="layui-col-md3 layui-col-md-offset">
+        <script type="text/html" template>
+            【{{d.params.type_name}}】
+        </script>
+    </div>
+</div>
+
+<div class="layui-form" lay-filter="config-form" style="padding: 20px 0 0 0;">
+    <div class="layui-form-item">
+        <label class="layui-form-label">支付模式</label>
+        <div class="layui-input-block" >
+            <select name="pay_type" lay-verify="required">
+              <option value=""></option>
+              <option value="1">充值</option>
+              <option value="2">兑换</option>
+              <option value="3">购买</option>
+            </select> 
+        </div>
+    </div>
+    <div class="layui-form-item" id="num_div" style="display:none">
+        <label class="layui-form-label">数量</label>
+        <div class="layui-input-inline">
+            <input type="text" name="num" value="" placeholder="仅支持1以上整数" autocomplete="off" class="layui-input" lay-verify="required|number|range">
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">单次/累计</label>
+        <div class="layui-input-block" >
+            <select name="type" lay-filter="type" lay-verify="required">
+              <option value=""></option>
+              <option value="1">单次</option>
+              <option value="2">累计</option>
+            </select> 
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label"></label>
+        <div class="layui-input-inline" style="margin-left: 130px">
+            <input type="button" lay-submit lay-filter="LAY-config-submit" value="确认" class="layui-btn" style="width: 150px;">
+        </div>
+    </div>
+
+</div>
+
+<script>
+
+    layui.use(['admin', 'form'], function(){
+        var $ = layui.$
+        ,admin = layui.admin
+        ,form = layui.form;
+        config_id = top.id;
+        type_id = top.top_type_id;
+        form.render();
+
+        //自定义验证
+          form.verify({
+            range:function(value,item){
+              if(value < 1){
+                return '此项值仅支持1以上整数';
+              }
+            }
+          }); 
+
+        form.on('select(type)', function (data) {
+          //判断是单次还是累计
+          val = data.value;
+          if(val == 1){
+            $("#num_div").hide();
+            $('[name="num"]').attr('lay-verify','');
+          }else{
+            $("#num_div").show();
+            $('[name="num"]').attr('lay-verify','required|number|range');
+          }
+          form.render();
+        });
+
+        admin.req({
+            url:layui.setter.api+'task-task_config_get',
+            data: {config_id:config_id,type_id:type_id},
+            done: function(data){
+
+                // console.log(data);
+                res = data.data;
+                
+                arr_info = Object.keys(res.info); 
+                if(arr_info.length > 0){
+                    form.val('config-form',{
+                        'pay_type':res.info.content.pay_type,
+                        'type':res.info.content.type,
+                        'num':res.info.num
+                    });
+                    if(res.info.num == ''){
+                        $("#num_div").hide();
+                        $('[name="num"]').attr('lay-verify','');
+                    }else{
+                        $("#num_div").show();
+                        $('[name="num"]').attr('lay-verify','required|number|range');
+                    }
+                }
+                form.render();
+            }
+        });
+        
+    });
+</script>

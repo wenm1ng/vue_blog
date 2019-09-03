@@ -1,0 +1,133 @@
+
+<title>编辑账号</title>
+<div class="layui-card layadmin-header">
+  <div class="layui-breadcrumb" lay-filter="breadcrumb">
+    <a>系统管理</a>
+    <a lay-href="system/account/">账号管理</a>
+    <a>编辑账号</a>
+  </div>
+</div>
+<div class="layui-fluid">
+  <div class="layui-row layui-col-space15">
+    <div class="layui-col-md12">
+      <div class="layui-card">
+        <div class="layui-card-header">设置资料</div>
+        <div class="layui-card-body" pad15>
+          
+          <div class="layui-form" lay-filter="account-edit-form">
+            <div class="layui-form-item">
+              <label class="layui-form-label">分组</label>
+              <div class="layui-input-inline">
+                <select name="role" class="layui-btn-disabled" id="role">
+                  
+                </select> 
+              </div>
+              <!-- <div class="layui-form-mid layui-word-aux">当前角色不可更改为其它角色</div> -->
+            </div>
+            <div class="layui-form-item">
+              <label class="layui-form-label">用户名</label>
+              <div class="layui-input-inline">
+                <input type="text" name="username" readonly placeholder="请输入用户名" class="layui-input layui-btn-disabled">
+              </div>
+              <div class="layui-form-mid layui-word-aux">
+                不可修改。一般用于后台登入名,不能有特殊字符、首尾不能出现下划线、不能全为数字
+              </div>
+            </div>
+            <div class="layui-form-item">
+              <label class="layui-form-label">昵称</label>
+              <div class="layui-input-inline">
+                <input type="text" name="nickname" autocomplete="off" placeholder="请输入昵称" class="layui-input">
+              </div>
+            </div>
+            <div class="layui-form-item">
+              <label class="layui-form-label">状态</label>
+              <div class="layui-input-block">
+                <input type="radio" name="status" value="1" title="启用" checked>
+                <input type="radio" name="status" value="2" title="禁用">
+              </div>
+            </div>            
+            <div class="layui-form-item">
+              <label class="layui-form-label">重置密码</label>
+              <div class="layui-input-inline">
+                <input type="text" name="password" lay-verify="pass" autocomplete="off" placeholder="请输入密码" class="layui-input">
+              </div>
+              <div class="layui-form-mid layui-word-aux">
+                密码必须6到12位，且不能出现空格；为空表示不重置密码
+              </div>              
+            </div>            
+            <div class="layui-form-item">
+              <div class="layui-input-block">
+                <button class="layui-btn" lay-submit lay-filter="setinfo">确认修改</button>
+              </div>
+            </div>
+          </div>
+          
+        </div>
+      </div>
+    </div>
+  </div>
+</div> 
+
+<script>
+layui.use(['admin', 'table', 'form'], function(){
+  var $ = layui.$
+  ,admin = layui.admin
+  ,form = layui.form
+  ,router = layui.router()
+  form.render();
+  //获取编辑数据
+  admin.req({
+    url: layui.setter.api+'common-account_edit_data',
+    data: {'id':router.search.id},
+    type: 'post',
+    async:false, 
+    done: function(data){
+      var res = data.data.user;
+      var group = data.data.group;
+      
+      var div = '';
+      $.each(group,function(index,val){
+        div += '<option value="'+val.id+'">'+val.name+'</option>';
+      })
+      $("#role").append(div);
+
+      //表单初始赋值
+      form.val('account-edit-form', {
+        "role": res.role,
+        "status": res.status,
+        "username": res.username,
+        "nickname": res.nickname,
+      })
+
+      form.render();
+    }
+  });  
+  //自定义验证
+  form.verify({
+    pass: [
+      /^([\S]{6,12})?$/
+      ,'密码必须6到12位，且不能出现空格'
+    ]
+  });  
+  //表单提交
+  form.on('submit(setinfo)', function(data){
+    data.field.id = router.search.id;
+    var loading = layer.msg('处理中...', {icon: 16,time:false});
+    admin.req({
+      url: layui.setter.api+'common-account_save',
+      data: data.field,
+      type: 'post',
+      done: function(res){
+        setTimeout(function(){
+            layer.close(loading);
+            layer.msg(res.msg, {icon: 1},function(){
+              location.hash = '/system/account/'
+            })
+        },500)
+      }
+    });
+    return false;
+  });
+ 
+});
+</script>

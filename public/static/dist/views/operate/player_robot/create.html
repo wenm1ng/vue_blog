@@ -1,0 +1,46 @@
+<div class="layui-form" lay-filter="layuiadmin-form-create" style="padding: 20px 30px 0 0;">
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">机器人开始id</label>
+        <div class="layui-input-inline">
+            <input type="text" name="robot_uid_start" value="" lay-verify="number" placeholder="请输入起始id" autocomplete="off" class="layui-input">
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">机器人结束id</label>
+        <div class="layui-input-inline">
+            <input type="text" name="robot_uid_end" value="" lay-verify="number_and_sort" placeholder="请输入结束id" autocomplete="off" class="layui-input">
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label"></label>
+        <div class="layui-input-inline">
+            <input type="button" lay-submit lay-filter="LAY-user-back-submit" value="确认" class="layui-btn">
+        </div>
+    </div>
+</div>
+
+<script>
+    layui.use(['admin', 'form'], function(){
+        var $ = layui.$
+        ,admin = layui.admin
+        ,form = layui.form;
+
+        form.verify({
+            number_and_sort: function(value, item){
+                if (!/^\d+$/.test(value)) {
+                    return '必须为数字';
+                }
+                var robot_uid_start = $("input[name='robot_uid_start']").val();
+                var robot_uid_end = $("input[name='robot_uid_end']").val();
+                robot_uid_start = Number(robot_uid_start);
+                robot_uid_end = Number(robot_uid_end);
+                if (robot_uid_start > robot_uid_end) {
+                    return '开始id不能大于结束id';
+                }
+            }
+        });
+    });
+</script>

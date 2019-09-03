@@ -1,0 +1,356 @@
+<!-- <script type="text/html" template>
+    <input type="hidden" id="game_venue_id" value="{{d.params.id}}">
+</script> -->
+<style>
+    /* 防止下拉框的下拉列表被隐藏---必须设置--- */
+    .layui-table-cell {
+      height: auto;
+                /*空白会被浏览器忽略*/
+      white-space: normal;
+                /*允许长单词换行到下一行*/
+      word-wrap: break-word;
+                /*允许在单词内换行*/
+      word-break: break-all;
+      overflow: visible;
+      min-height: 28px;
+    }
+
+    .layui-table-box {
+        overflow: visible;
+    }
+
+    .layui-table-body {
+        overflow: visible;
+    }
+    /* 设置下拉框的高度与表格单元相同 */
+    td .layui-form-select{
+      margin-top: -10px;
+      margin-left: -15px;
+      margin-right: -15px;
+    }
+
+
+    .play_type_table>.layui-form{
+      height: auto;
+    }
+
+    #add_service_div .layui-form-label{
+      width: 140px;
+    }
+</style>
+<div class="layui-row">
+    <div class="layui-col-md3 layui-col-md-offset">
+        <script type="text/html" template>
+            【{{d.params.type_name}}】
+        </script>
+    </div>
+</div>
+
+<div class="layui-form" lay-filter="config-form" style="padding: 20px 0 0 0;">
+    <div class="layui-form-item">
+        <label class="layui-form-label"></label>
+        <div class="layui-input-block" >
+            <input type="checkbox" name="all" value="1" lay-filter="all" title="全选" lay-skin="primary">
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">游戏/场次</label>
+        <div class="layui-input-block" id="game_div">
+            
+        </div>
+    </div>
+    <input type="hidden" name="game_all" value="">
+    <div class="layui-form-item">
+        <label class="layui-form-label">单次/累计</label>
+        <div class="layui-input-block" >
+            <select name="type" lay-verify="required" style="width:40%">
+              <option value=""></option>
+              <option value="1">单次</option>
+              <option value="2">累计</option>
+            </select> 
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">金额</label>
+        <div class="layui-input-inline">
+            <input type="text" name="num" value="" placeholder="请输入整数金额" autocomplete="off" class="layui-input" lay-verify="required|number">
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label"></label>
+        <div class="layui-input-inline" style="margin-left: 130px">
+            <input type="button" lay-submit lay-filter="LAY-config-submit" value="确认" class="layui-btn" style="width: 150px;">
+        </div>
+    </div>
+
+</div>
+
+<script>
+
+    layui.use(['admin', 'form'], function(){
+        var $ = layui.$
+        ,admin = layui.admin
+        ,form = layui.form;
+        config_id = top.id;
+        type_id = top.top_type_id;
+        form.render();
+
+        //自定义验证
+          form.verify({
+            range:function(value,item){
+              if(value < 1){
+                return '此项值仅支持1以上整数';
+              }
+            }
+          });  
+
+        admin.req({
+            url:layui.setter.api+'task-task_config_get',
+            data: {config_id:config_id,type_id:type_id},
+            done: function(data){
+
+                // console.log(data);
+                res = data.data;
+                num = 1;
+                arr_info = Object.keys(res.info); 
+                if(arr_info.length > 0){
+                    //默认值赋值
+                    game_default_arr = [];
+                    venue_default_arr = [];
+                    $.each(res.info.content.game_venue,function(index,val){
+                        game_default_arr.push(val.game_id);
+                        $.each(val.venue_list,function(k,v){
+                            venue_default_arr.push(v);
+                        })
+                    })
+
+                    game_all_str = res.info.content.game_all.join(',');
+                    // console.log(game_all_str);
+                    
+                        // console.log(game_default_arr);
+                        // console.log(venue_default_arr);
+                    
+                    checkbox = '';
+                    game_str = '';
+
+                    //生成游戏场次信息
+                    $.each(res.game_venue_list,function(index,val){
+                        num_son = 1;
+
+                        game_arr = index.split('**');
+
+                        if(res.info.content.all == 1){
+                            checked = 'checked';
+                            $('[name="all"]').prop('checked',true);
+
+                        }else{
+                            if($.inArray(game_arr[0],res.info.content.game_all) > -1){
+                                //有全部游戏选项
+                                checked = 'checked';
+                                game_str += ','+game_arr[0];
+                            }else{
+                                //判断默认值
+                                if($.inArray(game_arr[0],game_default_arr) > -1){
+                                    checked = 'checked';
+                                }else{
+                                    checked = '';
+                                }
+                            }
+                        }
+
+                        checkbox += '<input type="checkbox" name="game_id[]" title="'+game_arr[1]+'" lay-skin="primary" lay-filter="parent" class="parent'+num+'" son="son'+num+'" value="'+game_arr[0]+'" '+checked+'><br>';
+                        $.each(val,function(k,v){
+                            if(num_son == 1 || num_son % 6 == 0){
+                                class_name = 'margin';
+                            }else{
+                                class_name = '';
+                            }
+
+                            if(res.info.content.all == 1){
+                                checked = 'checked';
+                            }else{
+                                if($.inArray(game_arr[0],res.info.content.game_all) > -1){
+                                    checked = 'checked';
+                                }else{
+                                    //判断默认值
+                                    if($.inArray(v.venue_id,venue_default_arr) > -1){
+                                        checked = 'checked';
+                                    }else{
+                                        checked = '';
+                                    }
+                                }
+                            }
+                            
+
+                            checkbox += '<input type="checkbox" name="venue_id[]" title="'+v.venue_name+'" lay-skin="primary" lay-filter="son" value="'+v.venue_id+'" class="'+class_name+' son'+num+'" son="son'+num+'"  parent="parent'+num+'" '+checked+'>';
+                            num_son++;
+                        })
+                        num++;
+                        checkbox += '<br>';
+                    })
+                    // console.log(game_str.trim(','));
+                    if(res.info.content.all == 1){
+                        form.val('config-form',{
+                            'num':res.info.num,
+                            'type':res.info.content.type,
+                            'game_all':game_all_str,
+                            'all':res.info.content.all
+                        });
+                    }else{
+                        form.val('config-form',{
+                            'num':res.info.num,
+                            'game_all':game_str.trim(','),
+                            'type':res.info.content.type,
+                            'all':res.info.content.all
+                        });
+                    }
+
+                    $("#game_div").html(checkbox);
+                }else{
+                    checkbox = '';
+                    //生成游戏场次信息
+                    $.each(res.game_venue_list,function(index,val){
+                        num_son = 1;
+
+                        game_arr = index.split('**');
+                        checkbox += '<input type="checkbox" name="game_id[]" title="'+game_arr[1]+'" lay-skin="primary" lay-filter="parent" class="parent'+num+'" son="son'+num+'" value="'+game_arr[0]+'"><br>';
+                        $.each(val,function(k,v){
+                            if(num_son == 1 || num_son % 6 == 0){
+                                class_name = 'margin';
+                            }else{
+                                class_name = '';
+                            }
+                            checkbox += '<input type="checkbox" name="venue_id[]" title="'+v.venue_name+'" lay-skin="primary" lay-filter="son" value="'+v.venue_id+'" class="'+class_name+' son'+num+'" son="son'+num+'"  parent="parent'+num+'">';
+                            num_son++;
+                        })
+                        num++;
+                        checkbox += '<br>';
+                    })
+                    $("#game_div").html(checkbox);
+                }
+                form.render();
+                $('.margin').next().css('cssText','margin-left:10%');
+            }
+        });
+        
+        String.prototype.trim = function (char, type) {
+            if (char) {
+        if (type == 'left') {
+            return this.replace(new RegExp('^\\'+char+'+', 'g'), '');
+        } else if (type == 'right') {
+            return this.replace(new RegExp('\\'+char+'+$', 'g'), '');
+        }
+            return this.replace(new RegExp('^\\'+char+'+|\\'+char+'+$', 'g'), '');
+        }
+            return this.replace(/^\s+|\s+$/g, '');
+        };
+
+        form.on('checkbox(parent)',function(data){
+            parent = data.elem.attributes['class'].value;
+
+            $("input[type='checkbox']").each(function(){
+                if($(this).attr('lay-filter') !== undefined){
+                    if($(this).attr('class') == parent || $(this).attr('parent') == parent){
+                    }else{
+                        $(this).prop('checked',false);
+                    }
+                }
+            })
+            son = '.'+data.elem.attributes['son'].value;
+            $(son).prop('checked',$(this).prop('checked'));
+            if($(this).prop('checked') == true){
+                parent_is = 1;
+                $('input[name="game_id[]"]').each(function(){
+                    if($(this).prop('checked') == false){
+                        parent_is = 0;
+                    }
+                })
+
+                form.val('config-form',{
+                    'game_all':data.elem.value,
+                });
+            }else{
+                form.val('config-form',{
+                    'game_all':'',
+                });
+            }
+
+            form.render();
+            $('.margin').next().css('cssText','margin-left:10%');
+        })
+
+        form.on('checkbox(all)',function(data){
+            $("input[type='checkbox'][lay-skin='primary']").prop('checked',$(this).prop('checked'));
+            
+            form.val('config-form',{
+                'game_all':''
+            });
+            form.render();
+            $('.margin').next().css('cssText','margin-left:10%');
+        })
+
+        form.on('checkbox(son)',function(data){
+            parents = data.elem.attributes['parent'].value;
+            sons = data.elem.attributes['son'].value;
+            value = data.elem.value;
+            $("input[type='checkbox']").each(function(){
+                if($(this).attr('lay-filter') !== undefined){
+                    // console.log($(this));return;
+                    if($(this).attr('class') == parents || $(this).val() == value){
+                    }else{
+                        $(this).prop('checked',false);
+                    }
+                }
+                
+            })
+            // console.log($('input[name="game_all"]').val());
+            parent = '.'+data.elem.attributes['parent'].value;
+            son = '.'+data.elem.attributes['son'].value;
+            test = 1;
+
+            flag = 1; 
+            for (var i = $(son).length - 1; i >= 0; i--) {
+                if($(son).eq(i).prop('checked')){
+                    test = 2;
+                }else{
+                    //有没有选中的改变flag
+                    flag = 2;
+                }
+            }
+
+            if(test == 1){
+                $(parent).prop('checked',false);
+                
+                form.val('config-form',{
+                    'game_all':'',
+                });
+            }else{
+                $(parent).prop('checked',true);
+
+                if(flag == 2){
+                    form.val('config-form',{
+                        'game_all':'',
+                    });
+                }else{
+                    parent_is = 1;
+                    $('input[name="game_id[]"]').each(function(){
+                        if($(this).prop('checked') == false){
+                            parent_is = 0;
+                        }
+                    })
+
+                    form.val('config-form',{
+                        'game_all':$(parent).val(),
+                    });
+                }
+
+                
+            }
+
+            form.render();
+            $('.margin').next().css('cssText','margin-left:10%');
+
+        })
+    });
+</script>

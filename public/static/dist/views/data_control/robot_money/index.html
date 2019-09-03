@@ -1,0 +1,129 @@
+
+<title>机器人携带</title>
+
+<div class="layui-card layadmin-header">
+    <div class="layui-breadcrumb" lay-filter="breadcrumb">
+        <a>数据控制</a>
+        <a>机器人携带</a>
+    </div>
+</div>
+
+<div class="layui-fluid">
+    <div class="layui-row layui-col-space15">
+        <div class="layui-col-md12">
+            <div class="layui-card">
+                <div class="layui-form layui-card-header layuiadmin-card-header-auto" lay-filter="app-content-list">
+                    <div class="layui-form-item">
+                        <div class="layui-input-inline">
+                            <input type="text" name="id_name" placeholder="游戏名/游戏ID" autocomplete="off" class="layui-input">
+                        </div>
+
+                        <div class="layui-input-inline">
+                            <button class="layui-btn layuiadmin-btn-list" lay-submit="" lay-filter="LAY-robot_money-search">
+                                <i class="layui-icon layui-icon-search layuiadmin-button-btn"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="layui-col-md12">
+            <div class="layui-card">
+                <div class="layui-card-body">
+                    <table class="layui-hide" id="LAY-table-robot_money-index" lay-filter="LAY-table-robot_money-index"></table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    layui.use(['admin', 'table', 'form'], function(){
+        var $ = layui.$
+        ,admin = layui.admin
+        ,table = layui.table
+        ,form = layui.form
+        ,router = layui.router();
+        
+        form.render();
+
+        // 渲染表格
+        table.render({
+            elem: '#LAY-table-robot_money-index'
+            ,url:layui.setter.api+'data_control-game_data_list'
+            ,cellMinWidth: 80
+            ,cols: [[
+                {field:'name', title:'游戏', unresize: false}
+                ,{field:'game_id', title:'游戏ID', unresize: false}
+                ,{field:'venue_name',title:'场次',unresize: false}
+                ,{field:'min_money',align: 'center', edit:'text',title:'机器人携带下限',unresize: false}
+                ,{field:'max_money',align: 'center', edit:'text',title:'机器人携带上限',unresize: false}
+                ,{field:'space_time',align: 'center', edit:'text',title:'携带间隔',unresize: false}
+                ,{field:'update_time',title:'最后修改时间',unresize: false}
+                ,{field:'id',title:'操作',unresize: false,templet:function(d){
+                    return '<a class="layui-btn layui-btn-xs" onclick="sync_redis('+d.game_id+','+d.venue_id+')">生效</a>('+d.sync_redis_time+')';
+                }}
+            ]]
+            ,page: true
+            ,done: function () {
+            }
+        });
+
+        // 更新字段
+        function updateField(game_id,venue_id,field,value){
+            var loading = layer.msg('处理中...', {icon: 16,time:false});
+            admin.req({
+                url: layui.setter.api+'data_control-game_data_robot_edit',
+                data: {'game_id':game_id,'venue_id':venue_id,'field':field,'value':value},
+                type: 'post',
+                done: function(res){
+                    setTimeout(function(){
+                        layer.close(loading);
+                        layer.msg(res.msg, {icon: 1})
+                    },500);
+                }
+            });
+        }
+
+        // 监听单元格编辑
+        table.on('edit(LAY-table-robot_money-index)', function(obj){
+            updateField(obj.data.game_id,obj.data.venue_id,obj.field,obj.value);
+        });
+
+        // 监听搜索
+        form.on('submit(LAY-robot_money-search)', function(data){
+            layui.data(layui.setter.tableName, {
+                key: 'robot_money'
+                ,value: data.field
+            });
+            table.reload('LAY-table-robot_money-index', {
+                where:{
+                    id_name: data.field.id_name,
+                }
+                ,page: {
+                    curr: 1 //重新从第 1 页开始
+                }
+                ,done:function(){
+                    form.render();
+                }
+            });
+        });
+
+        // 同步缓存
+        window.sync_redis = function(game_id,venue_id){
+            var loading = layer.msg('处理中...', {icon: 16,time:false});
+            admin.req({
+                url: layui.setter.api+"data_control-game_data_robot_sync_redis"
+                ,data: {game_id:game_id,venue_id:venue_id}
+                ,done: function(data){
+                    setTimeout(function(){
+                        layer.close(loading);
+                        layer.msg(data.msg, {icon: 1});
+                        table.reload('LAY-table-robot_money-index');
+                    },500);
+                }
+            });
+        };
+    })
+</script>

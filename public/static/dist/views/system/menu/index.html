@@ -1,0 +1,172 @@
+<title>菜单管理</title>
+
+<div class="layui-card layadmin-header">
+  <div class="layui-breadcrumb" lay-filter="breadcrumb">
+    <a>系统管理</a>
+    <a>菜单管理</a>
+  </div>
+</div>
+<div class="layui-fluid">
+    <div class="layui-row layui-col-space15">
+        <div class="layui-col-md12">
+            <div class="layui-card">
+
+              <div class="layui-form layui-card-header layuiadmin-card-header-auto" lay-filter="app-content-list">
+                <div class="layui-form-item">
+
+<!--                     <div class="layui-inline" style="float: left;">
+                      <button lay-href="menu/add" class="layui-btn layuiadmin-btn-list" data-type="add"><i class="layui-icon layui-icon-add-1 layuiadmin-button-btn"></i>新增菜单</button>
+                    </div>   -->          
+                  
+                </div>
+              </div>
+
+            </div>
+        </div>
+        <div class="layui-col-md12">
+          <div class="layui-card">
+            <div class="layui-card-body">
+
+                    <table class="layui-hidden" id="treeTable" lay-filter="treeTable"></table>
+              
+              
+            </div>
+          </div>
+        </div>        
+    </div>
+</div>
+<script id="LAY-menu-status" type="text/html">
+    <input type="checkbox" name="close" lay-skin="switch" lay-filter="LAY-menu-status" value="{{d.id}}" lay-text="显示|隐藏" {{ d.status == 1 ? 'checked' : '' }}>
+</script>
+<script>
+    // layer.open({
+    //   type: 2, 
+    //   title: 'layer mobile页',
+    //   shadeClose: true,
+    //   shade: 0.8,
+    //   area: ['70%', '90%'],
+    //   content: 'http://gold.com/admin/start/#/system/account/' //这里content是一个普通的String
+    // });
+    //treeGrid扩展，获取数据父ID必须排在前面
+    var editObj=null,ptable=null,treeGrid=null,tableId='treeTable',layer=null;
+    layui.use(['admin','table','jquery','treeGrid','layer'], function(){
+        var $=layui.jquery,table = layui.table,admin = layui.admin,form = layui.form;
+        treeGrid = layui.treeGrid;//很重要
+        layer=layui.layer;       
+
+        ptable=treeGrid.render({
+            id:tableId
+            ,elem: '#'+tableId
+            ,idField:'id'
+            ,url:layui.setter.api+'common-menuData?access_token='+layui.data(layui.setter.tableName)['access_token']
+            // ,cellMinWidth: 100
+            ,treeId:'id'//树形id字段名称
+            ,treeUpId:'parent_id'//树形父id字段名称
+            ,treeShowName:'title'//以树形式显示的字段
+            ,cols: [[
+                {width:70,title: '操作', align:'right'/*toolbar: '#barDemo'*/
+                    ,templet: function(d){
+                    var html='';
+                    var addBtn='';
+                    var delBtn='';
+                    if(d.level == 1 || d.level == 2){
+                        addBtn='<a class="layui-btn layui-btn-xs" lay-event="add">添加</a>';
+                    }
+                    // var delBtn='<a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>';
+                    return addBtn+delBtn;
+                }
+                }            
+                ,{field:'title', edit:'text',width:300, title: '名称'}
+                // ,{field:'id',width:80, title: 'id'}
+                // ,{field:'parent_id',width:80, title: 'pid'}
+                ,{field:'icon', edit:'text', title: 'layui图标'}
+                ,{field:'jump', edit:'text', title: '跳转的url'}
+                ,{field:'sort', edit:'text', title: '同级菜单排序'}
+                ,{field:'status_name', title: '状态', templet: '#LAY-menu-status'}
+                
+            ]]
+            ,page:false
+        });
+
+        treeGrid.on('tool('+tableId+')',function (obj) {
+            if(obj.event === 'del'){//删除行
+                del(obj);
+            }else if(obj.event==="add"){//添加行
+                add(obj.data);
+            }
+        });
+
+        //监听单元格编辑
+        treeGrid.on('edit('+tableId+')', function(obj){
+            // if(obj.field == 'sort'){
+            //     var patten_Int =/^\d{1,6}$/;
+            //     var change_sort = obj.value;
+            //     var matchResult = change_sort.match(patten_Int);
+
+            //     if(matchResult == null){
+            //         layer.msg('请输入1-6位整数数字，数字越小越靠前', {icon: 5,time: 3000},function(){
+            //             treeGrid.query(tableId);
+            //         });
+                    
+            //         return false;
+            //     } 
+            // }
+            var loading = layer.msg('处理中...', {icon: 16,time:false});
+            admin.req({
+              url: layui.setter.api+'common-menu_node_save',
+              data: {'id':obj.data.id,'field':obj.field,'value':obj.value},
+              type: 'post',
+              done: function(res){
+                setTimeout(function(){
+                    layer.close(loading);
+                    layer.msg(res.msg, {icon: 1})
+                },500)
+                // treeGrid.query(tableId);              
+              }
+            });            
+        });
+        //监听显示隐藏操作
+        form.on('switch(LAY-menu-status)', function(obj){
+            var status = this.checked ? 1 : 0;
+            var loading = layer.msg('处理中...', {icon: 16,time:false});
+            admin.req({
+              url: layui.setter.api+"common-menu_node_save"
+              ,data: {'id':obj.value,'status':status}
+              ,done: function(data){
+                setTimeout(function(){
+                    layer.close(loading);
+                    layer.msg(data.msg, {icon: 1})
+                },500)
+              }
+            });      
+        });         
+        //添加
+        function add(pObj) {
+            layer.confirm('确定给 “ '+pObj.title+' ” 添加子节点 ?', function(index){
+                var loading = layer.msg('处理中...', {icon: 16,time:false});
+                admin.req({
+                  url: layui.setter.api+'common-menu_node_add',
+                  data: {'id':pObj.id,'level':pObj.level},
+                  type: 'post',
+                  done: function(res){
+                    setTimeout(function(){
+                        layer.close(loading);
+                        layer.msg(res.msg, {icon: 1})
+                    },500)
+                    var param={};
+                    param.title='';
+                    param.id=res.data.id;
+                    param.parent_id=pObj.id;
+                    treeGrid.addRow(tableId,pObj?pObj.LAY_TABLE_INDEX+1:0,param);
+                    layer.close(index);                
+                  }
+                });            
+
+            });         
+
+        }                              
+    });
+
+
+
+</script>

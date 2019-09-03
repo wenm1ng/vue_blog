@@ -1,0 +1,114 @@
+
+<div class="layui-row">
+    <div class="layui-col-md3 layui-col-md-offset2">
+        <script type="text/html" template>
+            场次id:{{d.params.venue_id}}
+        </script>
+    </div>
+    <div class="layui-col-md7">
+        <script type="text/html" template>
+            所属游戏:{{d.params.name}}
+        </script>
+    </div>
+</div>
+
+<div class="layui-form" lay-filter="layuiadmin-form-edit" style="padding: 20px 30px 0 0;">
+
+    <table class="layui-table">
+        <thead>
+            <tr>
+                <th>修改内容</th>
+                <th>原始值</th>
+                <th>修正值</th>
+            </tr>
+            <tr>
+                <th>场次名称</th>
+                <script type="text/html" template>
+                    <th>{{d.params.venue_name}}</th>
+                    <th><input type="text" name="venue_name" placeholder="请输入" autocomplete="off" class="layui-input"></th>
+                </script>
+            </tr>
+            <tr>
+                <th>底分</th>
+                <script type="text/html" template>
+                    <th>{{d.params.base_score}}</th>
+                    <th><input type="text" name="base_score" lay-verify="number_or_null" placeholder="请输入" autocomplete="off" class="layui-input"></th>
+                </script>
+            </tr>
+            <tr>
+                <th>台费</th>
+                <script type="text/html" template>
+                    <th>{{d.params.table_fee}}</th>
+                    <th><input type="text" name="table_fee" lay-verify="number_or_null" placeholder="请输入" autocomplete="off" class="layui-input"></th>
+                </script>
+            </tr>
+            <tr>
+                <th>准入下限</th>
+                <script type="text/html" template>
+                    <th>{{d.params.min_gold}}</th>
+                    <th><input type="text" name="min_gold" lay-verify="number_or_null" placeholder="请输入" autocomplete="off" class="layui-input"></th>
+                </script>
+            </tr>
+            <tr>
+                <th>准入上限</th>
+                <script type="text/html" template>
+                    <th>{{d.params.max_gold}}</th>
+                    <th><input type="text" name="max_gold" lay-verify="number_or_null" placeholder="请输入" autocomplete="off" class="layui-input"></th>
+                </script>
+            </tr>
+            <tr>
+                <th>快速开始准入下限</th>
+                <script type="text/html" template>
+                    <th>{{d.params.fast_min_gold}}</th>
+                    <th><input type="text" name="fast_min_gold" lay-verify="number_or_null" placeholder="请输入" autocomplete="off" class="layui-input"></th>
+                </script>
+            </tr>
+            <tr>
+                <th>快速开始准入上限</th>
+                <script type="text/html" template>
+                    <th>{{d.params.fast_max_gold}}</th>
+                    <th><input type="text" name="fast_max_gold" lay-verify="number_or_null" placeholder="请输入" autocomplete="off" class="layui-input"></th>
+                </script>
+            </tr>
+            <tr>
+                <th>场次限制人数</th>
+                <script type="text/html" template>
+                    <th>{{d.params.player_num}}</th>
+                    <th><input type="text" name="player_num" lay-verify="number_or_null" placeholder="请输入" autocomplete="off" class="layui-input"></th>
+                </script>
+            </tr>
+            <tr>
+                <th>排序</th>
+                <script type="text/html" template>
+                    <th>{{d.params.sort}}</th>
+                    <th><input type="text" name="sort" lay-verify="number_or_null" placeholder="请输入" autocomplete="off" class="layui-input"></th>
+                </script>
+            </tr>
+        </thead>
+    </table>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label"></label>
+        <div class="layui-input-inline" style="margin: 30px 0 0 30px">
+            <input type="button" lay-submit lay-filter="LAY-user-back-submit" value="确认" class="layui-btn" style="width: 150px;">
+        </div>
+    </div>
+
+</div>
+
+<script>
+    layui.use(['admin', 'form'], function(){
+        var $ = layui.$
+        ,form = layui.form;
+
+        form.verify({
+            number_or_null: function(value, item){
+                if(value.trim() != ''){
+                    if (!/^\d+$/.test(value)) {
+                        return '必须为数字';
+                    }
+                }
+            }
+        });
+    });
+</script>

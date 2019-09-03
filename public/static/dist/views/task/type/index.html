@@ -1,0 +1,157 @@
+
+<title>任务类型</title>
+<style>
+/* 防止下拉框的下拉列表被隐藏---必须设置--- */
+.layui-table-cell {
+  height: auto;
+            /*空白会被浏览器忽略*/
+  white-space: normal;
+            /*允许长单词换行到下一行*/
+  word-wrap: break-word;
+            /*允许在单词内换行*/
+  word-break: break-all;
+  overflow: visible;
+  min-height: 28px;
+}
+
+.layui-table-box {
+    overflow: visible;
+}
+
+.layui-table-body {
+    overflow: visible;
+}
+/* 设置下拉框的高度与表格单元相同 */
+td .layui-form-select{
+  margin-top: -10px;
+  margin-left: -15px;
+  margin-right: -15px;
+}
+
+
+.play_type_table>.layui-form{
+  height: auto;
+}
+
+#add_service_div .layui-form-label{
+  width: 140px;
+}
+
+/* #add_service_div .layui-input-block{
+  width: 100px;
+} */
+</style>
+<div class="layui-card layadmin-header">
+  <div class="layui-breadcrumb" lay-filter="breadcrumb">
+    <a>任务活动</a>
+    <a>任务类型</a>
+  </div>
+</div>
+<div class="layui-fluid">
+  <div class="layui-row layui-col-space15">
+    <div class="layui-col-md12">
+      <div class="layui-card">
+
+        <div class="layui-form layui-card-header layuiadmin-card-header-auto">
+          <div class="layui-form-item">           
+              <div class="layui-inline" style="float: right;">         
+                <button onclick="add_type()" class="layui-btn layuiadmin-btn-list"><i class="layui-icon layui-icon-add-1 layuiadmin-button-btn"></i>新增任务类型</button>
+              </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="layui-col-md12">
+      <div class="layui-card">
+        <div class="layui-card-body">
+            <table class="layui-hide" id="LAY-type-table" lay-filter="LAY-type-table"></table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  layui.use(['admin', 'table', 'form'], function(){
+  var $ = layui.$
+  ,admin = layui.admin
+  ,table = layui.table
+  ,form = layui.form
+  ,router = layui.router();
+  form.render();
+
+  window.add_type = function(){
+    layer.confirm('确定要新增任务类型吗？',{
+      btn:['确定','取消'],
+      title:'提示'
+    },function(){
+      admin.req({
+        url: layui.setter.api+'task-type_add',
+        type: 'post',
+        async:false, 
+        done: function(data){
+          table.reload('LAY-type-table');
+          layer.close(layer.index);
+        }
+      });
+    });
+  }
+
+  table.render({
+    elem: '#LAY-type-table'
+    ,url:layui.setter.api+'task-type_list'
+    ,cellMinWidth: 80
+    ,cols: [[
+      {field:'id', title:'任务类型ID', unresize: false}
+      ,{field:'name',title:'任务类型名称',edit:'text',unresize: false}
+      ,{field:'describe',title:'类型说明',edit:'text',unresize: false}
+      ,{field:'param_1',title:'配置参数1',edit:'text',unresize: false}
+      ,{field:'param_2',title:'配置参数2',edit:'text',unresize: false}
+      ,{field:'param_3',title:'配置参数3',edit:'text',unresize: false}
+      ,{field:'param_4',title:'配置参数4',edit:'text',unresize: false}
+      ,{field:'param_5',title:'配置参数5',edit:'text',unresize: false}
+      ,{field:'param_6',title:'配置参数6',edit:'text',unresize: false}
+      ,{field:'update_time',title:'最后修改时间',unresize: false}
+      ,{title:'生效时间',unresize: false,templet:function(d){
+        return '<a class="layui-btn layui-btn-xs" onclick="sync_redis('+d.id+')">生效</a>&nbsp;'+d.sync_redis_time;
+      }}
+    ]]
+    ,page: true
+    ,done:function(res, curr, count){
+      
+    }
+  }); 
+
+  //编辑某个字段
+  table.on('edit(LAY-type-table)',function(obj){
+    var loading = layer.msg('处理中...', {icon: 16,time:false});
+      admin.req({
+        url: layui.setter.api+"task-type_save_one"
+        ,data: {'id':obj.data.id,'value':obj.value,'field':obj.field}
+        ,done: function(data){
+          setTimeout(function(){
+              layer.close(loading);
+              layer.msg(data.msg, {icon: 1})
+          },500)
+        }
+      });
+  })
+
+  // 生效
+  window.sync_redis = function(id){
+
+    var loading = layer.msg('处理中...', {icon: 16,time:false});
+    admin.req({
+      url: layui.setter.api+"task-type_sync_redis"
+      ,data:{id:id}
+      ,done: function(data){
+        table.reload('LAY-type-table');
+        setTimeout(function(){
+          layer.close(loading);
+          layer.msg(data.msg, {icon: 1});
+        },500)
+      }
+    });
+  }
+})
+</script>

@@ -1,0 +1,466 @@
+
+<title>货架</title>
+<style>
+/* 防止下拉框的下拉列表被隐藏---必须设置--- */
+
+ .layui-table-cell {
+   height: auto;
+             /*空白会被浏览器忽略*/
+   white-space: normal;
+             /*允许长单词换行到下一行*/
+   word-wrap: break-word;
+             /*允许在单词内换行*/
+   word-break: break-all;
+   overflow: visible;
+   min-height: 28px;
+ }
+
+ .layui-table-box {
+     overflow: visible;
+ }
+
+
+.layui-table-body {
+    overflow: visible;
+}
+/* 设置下拉框的高度与表格单元相同 */
+td .layui-form-select{
+  margin-left: -15px;
+  margin-right: -15px;
+}
+
+
+.play_type_table>.layui-form{
+  height: auto;
+}
+
+#add_service_div .layui-form-label{
+  width: 140px;
+}
+
+/* #add_service_div .layui-input-block{
+  width: 100px;
+} */
+</style>
+<div class="layui-card layadmin-header">
+  <div class="layui-breadcrumb" lay-filter="breadcrumb">
+    <a>商城系统</a>
+    <a>货架</a>
+  </div>
+</div>
+<div class="layui-fluid">
+  <div class="layui-row layui-col-space15">
+    <div class="layui-col-md12">
+      <div class="layui-card">
+
+        <div class="layui-form layui-card-header layuiadmin-card-header-auto">
+          <div class="layui-form-item">
+              <div class="layui-input-inline">
+                  <input type="text" name="serch_field" placeholder="货架ID/货架名称" autocomplete="off" class="layui-input">
+              </div>
+              <div class="layui-input-inline">
+                  <select name="g_shop_type">
+                      <option value="">货架类型</option>
+                      <option value="0">首充</option>
+                      <option value="1">限时礼包</option>
+                      <option value="2">道具</option>
+                      <option value="3">购买钻石</option>
+                      <option value="4">购买金币</option>
+                  </select>
+              </div>
+              <div class="layui-input-inline">
+                  <button class="layui-btn layuiadmin-btn-list" lay-submit="" lay-filter="LAY-goods_shelves-search">
+                      <i class="layui-icon layui-icon-search layuiadmin-button-btn"></i>
+                  </button>
+              </div>
+              <div class="layui-inline" style="float: right;">         
+                <button onclick="add_prop()" class="layui-btn layuiadmin-btn-list"><i class="layui-icon layui-icon-add-1 layuiadmin-button-btn"></i>新增道具</button>
+              </div>              
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="layui-col-md12">
+      <div class="layui-card">
+        <div class="layui-card-body">
+            <table class="layui-hide" id="LAY-table" lay-filter="LAY-table"></table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!--参数配置modal-->
+
+<div class="layui-fluid" id="prop_div" style="display:none">
+  <div class="layui-row layui-col-space15">
+    <div class="layui-col-md12">
+      <div class="layui-card">
+        <div class="layui-card-body" pad15>
+          
+          <div class="layui-form" lay-filter="prop-form">
+            
+            <div class="layui-col-md12">
+              <div class="layui-card">
+                <div class="layui-card-body">
+                    <div class="layui-form-item">
+                      <div class="layui-inline">
+                        <label class="layui-form-label">支付类型</label>    
+                        <div class="layui-input-inline">
+                            <select name="select_price_type"></select>
+                        </div>
+                      </div>
+                      <div class="layui-inline">
+                        <label class="layui-form-label">支付数额</label>                        
+                        <div class="layui-input-inline">
+                            <input type="text" name="g_shop_price" placeholder="请输入" autocomplete="off" class="layui-input" oninput = "value=value.replace(/[^\d]/g,'')">
+                        </div>
+                      </div>
+                    </div>
+                    <div class="layui-form-item">
+                      <table class="layui-hide" id="LAY-prop-table" lay-filter="LAY-prop-table"></table>
+                    </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="layui-form-item">
+              <div class="layui-input-block" style="margin-left: 39%">
+                <input type="hidden" name="shelves_id" value="">
+                <!-- <button class="layui-btn" lay-submit lay-filter="prop_save">提交</button> -->
+                <!-- <button class="layui-btn layui-btn-primary" id="prop_cancel">取消</button> -->
+              </div>
+            </div>
+          </div>
+          
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+  layui.use(['admin', 'table', 'form','view'], function(){
+  var $ = layui.$
+  ,admin = layui.admin
+  ,table = layui.table
+  ,form = layui.form
+  ,view = layui.view;
+  form.render();
+  var g_shop_price_type_all = []//支付类型
+
+  //新增道具
+  window.add_prop = function(){
+    layer.confirm('确定要新增道具吗？',{
+      btn:['确定','取消'],
+      title:'提示'
+    },function(){
+      admin.req({
+        url: layui.setter.api+'shopping_mall-goods_shelves_add',
+        type: 'post',
+        async:false, 
+        done: function(data){
+          table.reload('LAY-table');
+          layer.closeAll();
+        }
+      });
+    });
+  }
+
+  table.render({
+    elem: '#LAY-table'
+    ,url:layui.setter.api+'shopping_mall-goods_shelves_list'
+    ,cellMinWidth: 80
+    ,cols: [[
+      // {field:'id', title:'自增ID',width:80, unresize: false}
+      {field:'g_shop_id',title:'货架ID',width:80,edit:'text',unresize: false, event:"checkSort"}
+      ,{field:'wb_shop_id',title:'平台货架ID',width:100,edit:'text',unresize: false, event:"checkSort"}
+      ,{field:'g_shop_name',title:'货架名称',edit:'text',unresize: false}
+      ,{field:'g_shop_type',title:'货架类型',width:120,unresize: false,templet:function(d,a,c){        
+        var div = '<option value=""></option>\n';
+        layui.each(d.g_shop_type_all, function(index, item){
+          if(item.id == d.g_shop_type){
+            div += '<option value="'+item.id+'" selected="">'+item.name+'</option>';
+          }else{
+            div += '<option value="'+item.id+'">'+item.name+'</option>';
+          }
+        })
+        return '<select name="select_shop_type" lay-filter="select_shop_type" lay-verify="require" lay-search  id="'+d.id+'">\n' + div+ '</select>';
+      }}
+      ,{field:'g_shop_pic',title:'货架图标',width:200,edit:'text',unresize: false}
+      ,{field:'corner_marker',title:'货架角标类型',width:120,unresize: false,templet:function(d,a,c){
+        var div = '<option value="">无</option>';
+        layui.each(d.corner_marker_all, function(index, item){
+          if(item.id == d.corner_marker){
+            div += '<option value="'+item.id+'" selected="">'+item.name+'</option>';
+          }else{
+            div += '<option value="'+item.id+'">'+item.name+'</option>';
+          }
+        })
+        return '<select name="select_type" lay-filter="select_type" lay-verify="require" lay-search  id="'+d.id+'">\n' + div+ '</select>';
+      }}
+      ,{field:'limit_probability_value',title:'限时概率值',width:100,edit:'text',unresize: false, event:"checklimitNum"}
+      ,{field:'sort',title:'排序',width:80,edit:'text',unresize: false, event:"checkSort"}
+      ,{title:'货架内商品',width:100,align: 'center',unresize: false,templet:function(d){
+        return '<a class="layui-btn layui-btn-xs" onclick="parameter_config('+d.id+','+d.cannot+','+d.g_shop_price_type+','+d.g_shop_price+')">配置</a>';
+      }}      
+      ,{field:'status', title:'货架状态',width:95, unresize: false,templet:function(d){
+        if(d.g_shop_status == 1){
+          var checked = 'checked';
+        }else{
+          var checked = '';
+        }
+        return '<input type="checkbox" name="close" lay-skin="switch" lay-filter="LAY-status" value="'+d.id+'" lay-text="在售|下架" '+checked+'>';
+      }}
+      ,{field:'update_time',title:'最后修改时间',width:170,align: 'center',unresize: false}
+      ,{title:'生效时间',width:230,align: 'center',unresize: false,templet:function(d){
+        return '<a class="layui-btn layui-btn-xs" onclick="sync_redis('+d.g_shop_id+')">生效</a></br>'+d.sync_redis_time;
+      }}
+    ]]
+    ,page: true
+    ,done:function(res, curr, count){
+      g_shop_price_type_all = res.g_shop_price_type_all
+    }
+  });
+  //监听搜索
+  form.on('submit(LAY-goods_shelves-search)', function(data){
+      table.reload('LAY-table', {
+          where:{
+            serch_field: data.field.serch_field,
+            g_shop_type: data.field.g_shop_type,
+          }
+          ,page: {
+              curr: 1 //重新从第 1 页开始
+          }
+          ,done:function(){
+          }
+      });
+  });  
+  function updateField(id,field,value){  
+    var loading = layer.msg('处理中...', {icon: 16,time:false});
+    admin.req({
+      url: layui.setter.api+'shopping_mall-goods_shelves_field_edit',
+      data: {'id':id,'field':field,'value':value},
+      type: 'post',
+      done: function(res){
+        setTimeout(function(){
+            layer.close(loading);
+            layer.msg(res.msg, {icon: 1})
+        },500)             
+      }
+    });    
+  }
+  //编辑某个字段
+  table.on('edit(LAY-table)',function(obj){
+    updateField(obj.data.id,obj.field,obj.value)
+  })
+  //货架内商品
+  window.parameter_config = function(id,cannot,g_shop_price_type,g_shop_price){
+    var btn = []
+    if(!cannot){
+      btn.push('保存')
+    }
+    prop = layer.open({
+        type: 1, 
+        title: '货架内商品（ 注：保存后不能修改 ）',
+        shadeClose: true,
+        shade: 0,
+        area: ['40%', '60%'],
+        offset:'auto',
+        content: $("#prop_div"), //这里content是一个普通的String
+        btn: btn,
+        success: function(layero, index){
+
+          let select_price_type_div = '';
+          layui.each(g_shop_price_type_all, function(index, item){
+            if(g_shop_price_type == item.goods_id){
+              select_price_type_div += '<option value="'+item.goods_id+'" selected>'+item.goods_name+'</option>';
+            }else{
+              select_price_type_div += '<option value="'+item.goods_id+'">'+item.goods_name+'</option>';
+            }
+            
+          })         
+
+          $('[name="select_price_type"]').html(select_price_type_div);
+          $('[name="g_shop_price"]').val(g_shop_price);
+
+          table.render({
+            elem: '#LAY-prop-table'
+            ,where:{
+              id:id
+            }
+            ,url:layui.setter.api+'shopping_mall-goods_all'
+            ,cellMinWidth: 80
+            ,cols: [[
+              {type:'checkbox', fixed: 'left'}
+              ,{field:'goods_name', title:'商品', unresize: false}
+              ,{field:'goods_num',title:'数量（ 点击编辑 ）', fixed: 'right',unresize: false,edit:'text', event:"checkNum"}
+            ]]
+            ,page: false
+            ,done:function(res, curr, count){
+              if(res.cannot){
+                btn.push('保存')
+              }
+
+              form.val('prop-form',{
+                'shelves_id':id
+              });
+              form.render();
+              
+            }
+          });
+        },
+        yes: function(index, layero){
+          let checkStatus = table.checkStatus('LAY-prop-table'),data = checkStatus.data
+          let shelves_id = $('[name="shelves_id"]').val()
+          if(data.length == 0 || !shelves_id){
+            layer.msg('请选择商品', {icon: 5});
+            return false;
+          }
+          let select_price_type = $('[name="select_price_type"]').val();
+          let g_shop_price = $('[name="g_shop_price"]').val();
+          if(g_shop_price == 0){
+            layer.msg('请输入价格', {icon: 5});
+            return false;
+          }
+          if(select_price_type == 100){
+            layui.each(data, function(index, item){
+              if(item.goods_id == 100){
+                  layer.msg('金币不能购买金币', {icon: 5});
+                  return false;
+              }
+              if(item.goods_id == 101){
+                  layer.msg('金币不能购买钻石', {icon: 5});
+                  return false;
+              }             
+            })
+          }
+          if(select_price_type == 101){
+            layui.each(data, function(index, item){
+              if(item.goods_id == 101){
+                  layer.msg('钻石不能购买钻石', {icon: 5});
+                  return false;
+              }             
+            })
+          }
+          let info = {'g_shop_price_type':select_price_type,'g_shop_price':g_shop_price,'list':data};
+          let dataJson = JSON.stringify(info)         
+          layer.confirm('保存后不能修改，确定保存?', {icon: 3, title:'提示'}, function(index){
+            updateField(shelves_id,'goods_list',dataJson)
+            table.reload('LAY-table')
+            layer.close(prop);  
+          });
+        },        
+        cancel:function(){
+          form.val('prop-form',{
+            'shelves_id':''
+          });
+          form.render();
+        }
+    });
+  }
+  //货架内商品表格工具监听
+  table.on('tool(LAY-prop-table)', function (obj) {
+    let data = obj.data
+    if(obj.event === 'checkNum'){
+      $(obj.tr).find(".layui-table-edit").keyup(function () {
+        let $input = $(this), val = $input.val();
+        $input.val(val.replace(/[^\d]/g, ''));
+        if(val.length > 1 && val == 0){
+          $input.val(val.replace(val, 0));
+        }
+      });
+    }
+  });    
+  // 监听修改货架类型
+  form.on('select(select_shop_type)', function (data) {
+    let id = data.elem.getAttribute('id');
+    let val = data.value;
+    updateField(id,'g_shop_type',val)  
+  });
+  // 监听修改支付类型
+  form.on('select(select_price_type)', function (data) {
+    let id = data.elem.getAttribute('id');
+    let val = data.value;
+    updateField(id,'g_shop_price_type',val)  
+  });
+  // 监听修改货架角标类型
+  form.on('select(select_type)', function (data) {
+    let id = data.elem.getAttribute('id');
+    let val = data.value;
+    updateField(id,'corner_marker',val)  
+  });
+  //单元格编辑
+  table.on('tool(LAY-table)', function (obj) {
+    let data = obj.data
+    if(obj.event === 'checklimitNum'){
+      $(obj.tr).find(".layui-table-edit").keyup(function () {
+          let $input = $(this), val = $input.val();
+          $input.val(val.replace(/[^\d]/g, ''));
+          if(val > 100){
+            $input.val(val.replace(val, 100));
+          }else if(val < 0 || (val.length > 1 && val == 0)){
+            $input.val(val.replace(val, 0));
+          }
+      });
+    }else if(obj.event === 'checkSort'){
+      $(obj.tr).find(".layui-table-edit").keyup(function () {
+          let $input = $(this), val = $input.val();
+          $input.val(val.replace(/[^\d]/g, ''));
+          if(val.length > 1 && val == 0){
+            $input.val(val.replace(val, 0));
+          }
+      });
+    }
+  });  
+  //监听上下线
+  form.on('switch(LAY-status)', function(obj){
+      let status = this.checked ? 1 : 0;
+      updateField(obj.value,'g_shop_status',status)      
+  });      
+  //生效
+  window.sync_redis = function(g_shop_id){
+    if(parseInt(g_shop_id) == 0){
+      layer.msg('请填写货架ID', {icon: 5});
+      return false
+    }
+    layer.confirm('确定生效?', {icon: 3, title:'提示'}, function(index){
+      var loading = layer.msg('处理中...', {icon: 16,time:false});
+      admin.req({
+          url: layui.setter.api+"shopping_mall-goods_shelves_sync_redis"
+          ,data:{g_shop_id:g_shop_id}
+          ,done: function(data){
+            table.reload('LAY-table');
+            setTimeout(function(){
+                layer.close(loading);
+                layer.msg(data.msg, {icon: 1});
+            },500)
+          }
+      });      
+    })
+
+  }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+})
+</script>

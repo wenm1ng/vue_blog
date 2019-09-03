@@ -1,0 +1,23 @@
+<div class="layui-form" lay-filter="layuiadmin-form-edit" style="padding: 20px 30px 0 0;">
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">金币(负数为减)</label>
+        <div class="layui-input-inline">
+            <input type="text" name="money" value="" lay-verify="number" placeholder="请输入数量" autocomplete="off" class="layui-input">
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label"></label>
+        <div class="layui-input-inline" style="text-align: center;margin-top: 15px;">
+            <input type="button" lay-submit lay-filter="LAY-user-back-submit" value="确认" class="layui-btn">
+        </div>
+    </div>
+</div>
+
+<script>
+    layui.use(['admin', 'form'], function(){
+        var $ = layui.$
+        ,admin = layui.admin
+        ,form = layui.form;
+    });
+</script>

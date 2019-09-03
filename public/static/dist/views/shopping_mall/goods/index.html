@@ -1,0 +1,123 @@
+
+<title>商品</title>
+<style>
+/* 防止下拉框的下拉列表被隐藏---必须设置--- */
+.layui-table-cell {
+  height: auto;
+            /*空白会被浏览器忽略*/
+  white-space: normal;
+            /*允许长单词换行到下一行*/
+  word-wrap: break-word;
+            /*允许在单词内换行*/
+  word-break: break-all;
+  overflow: visible;
+  min-height: 28px;
+}
+
+.layui-table-box {
+    overflow: visible;
+}
+
+.layui-table-body {
+    overflow: visible;
+}
+/* 设置下拉框的高度与表格单元相同 */
+td .layui-form-select{
+  margin-top: -10px;
+  margin-left: -15px;
+  margin-right: -15px;
+}
+
+
+.play_type_table>.layui-form{
+  height: auto;
+}
+
+#add_service_div .layui-form-label{
+  width: 140px;
+}
+
+/* #add_service_div .layui-input-block{
+  width: 100px;
+} */
+</style>
+<div class="layui-card layadmin-header">
+  <div class="layui-breadcrumb" lay-filter="breadcrumb">
+    <a>商城系统</a>
+    <a>货架</a>
+  </div>
+</div>
+<div class="layui-fluid">
+  <div class="layui-row layui-col-space15">
+    <div class="layui-col-md12">
+      <div class="layui-card">
+        <div class="layui-form layui-card-header layuiadmin-card-header-auto" lay-filter="app-content-list">
+          <div class="layui-form-item">
+            <div class="layui-input-inline">
+                <input type="text" name="goods" placeholder="ID/名称" autocomplete="off" class="layui-input">
+            </div>
+            <div class="layui-input-inline">
+                <select name="good_type">
+                    <option value="">商品类型</option>
+                    <option value="1">道具</option>
+                    <option value="2">人民币</option>
+                    <option value="3">金币</option>
+                    <option value="4">钻石</option>
+                    <option value="5">实物</option>
+                </select>
+            </div>            
+            <div class="layui-input-inline">
+                <button class="layui-btn layuiadmin-btn-list" lay-submit="" lay-filter="LAY-search">
+                    <i class="layui-icon layui-icon-search layuiadmin-button-btn"></i>
+                </button>
+            </div>
+            <div class="layui-form-mid layui-word-aux layui-fluid">
+              <div class="layui-row" style="color: #1E9FFF">修改联系胡磊</div>
+            </div>            
+          </div>
+        </div>
+        <div class="layui-card-body">
+            <table class="layui-hide" id="LAY-table" lay-filter="LAY-table"></table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+layui.use(['admin', 'table', 'form'], function(){
+  var $ = layui.$
+  ,admin = layui.admin
+  ,table = layui.table
+  ,form = layui.form;
+  form.render();
+
+  //监听搜索
+  form.on('submit(LAY-search)', function(data){
+      table.reload('LAY-table', {
+          where:{
+            goods: data.field.goods,
+            good_type: data.field.good_type,
+          }
+          ,page: {
+              curr: 1 //重新从第 1 页开始
+          }
+          ,done:function(){
+          }
+      });
+  });
+
+  table.render({
+    elem: '#LAY-table'
+    ,url:layui.setter.api+'shopping_mall-goods_list'
+    ,cellMinWidth: 80
+    ,cols: [[
+      {field:'goods_id', title:'商品ID', unresize: false}
+      ,{field:'goods_name', title:'商品名称', unresize: false}
+      ,{field:'good_type_name', title:'商品类型', unresize: false}
+      ,{field:'goods_pic', title:'商品图标', unresize: false}
+      ,{field:'goods_status_name', title:'状态', unresize: false}
+    ]]
+    ,page: true
+  });
+});
+</script>

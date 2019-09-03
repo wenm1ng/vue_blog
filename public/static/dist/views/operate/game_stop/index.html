@@ -1,0 +1,288 @@
+
+<title>停服更新</title>
+<style>
+/* 防止下拉框的下拉列表被隐藏---必须设置--- */
+.layui-table-cell {
+  height: auto;
+            /*空白会被浏览器忽略*/
+  white-space: normal;
+            /*允许长单词换行到下一行*/
+  word-wrap: break-word;
+            /*允许在单词内换行*/
+  word-break: break-all;
+  overflow: visible;
+  min-height: 28px;
+}
+
+.layui-table-box {
+    overflow: visible;
+}
+
+.layui-table-body {
+    overflow: visible;
+}
+/* 设置下拉框的高度与表格单元相同 */
+td .layui-form-select{
+  margin-top: -10px;
+  margin-left: -15px;
+  margin-right: -15px;
+}
+
+
+.play_type_table>.layui-form{
+  height: auto;
+}
+
+#add_service_div .layui-form-label{
+  width: 140px;
+}
+
+/* #add_service_div .layui-input-block{
+  width: 100px;
+} */
+</style>
+<div class="layui-card layadmin-header">
+  <div class="layui-breadcrumb" lay-filter="breadcrumb">
+    <a>线上运营</a>
+    <a>停服更新</a>
+  </div>
+</div>
+<div class="layui-fluid">
+  <div class="layui-row layui-col-space15">
+    <div class="layui-col-md12">
+        <div class="layui-card">
+            <div class="layui-form layui-card-header layuiadmin-card-header-auto" lay-filter="app-content-list">
+                <div class="layui-form-item">
+                    <div class="layui-input-inline">
+                        <input type="text" name="game_name" placeholder="游戏名称" autocomplete="off" class="layui-input">
+                    </div>
+
+                    <div class="layui-input-inline">
+                        <button class="layui-btn layuiadmin-btn-list" lay-submit="" lay-filter="LAY-search">
+                            <i class="layui-icon layui-icon-search layuiadmin-button-btn"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+    <div class="layui-col-md12">
+      <div class="layui-card">
+        <div class="layui-card-body">
+            <table class="layui-hide" id="LAY-table" lay-filter="LAY-table"></table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script id="LAY-startEdit-time" type="text/html">
+    <div style="width: 168px;display: inline;" id="startTimeValue{{d.id}}">{{d.start_time}}</div>
+    <i id="startTime{{d.id}}" class="layui-icon layui-icon-date" style="font-size: 25px; color: #1E9FFF;float: right;cursor:pointer;" title="编辑日期"></i>
+</script>
+<script id="LAY-endEdit-time" type="text/html">
+    <div style="width: 168px;display: inline;" id="endTimeValue{{d.id}}">{{d.end_time}}</div>
+    <i id="endTime{{d.id}}" class="layui-icon layui-icon-date" style="font-size: 25px; color: #1E9FFF;float: right;cursor:pointer;" title="编辑日期"></i>
+</script>
+<script id="LAY-game_stop-status" type="text/html">
+    <input type="checkbox" name="close" lay-skin="switch" lay-filter="LAY-game_stop-status" value="{{d.status}}" lay-text="启用|禁用" {{ d.stop_status == 1 ? 'checked' : '' }}>
+</script>
+
+<script>
+  layui.use(['admin', 'table', 'form', 'upload','laydate'], function(){
+  var $ = layui.$
+  ,admin = layui.admin
+  ,table = layui.table
+  ,upload = layui.upload
+  ,form = layui.form
+  ,laydate = layui.laydate
+  ,router = layui.router();
+  form.render();
+
+  table.render({
+    elem: '#LAY-table'
+    ,url:layui.setter.api+'operate-game_stop_list'
+    ,cellMinWidth: 80
+    ,cols: [[
+      {field:'name', title:'游戏名称', unresize: false}
+      ,{field:'game_id',title:'游戏ID',unresize: false}
+      ,{field:'introduction',align: 'center', edit:'text',title:'界面信息（支持点击修改）',unresize: false}
+      ,{field:'start_time',title:'停服开始时间',width:230,unresize: false,templet:'#LAY-startEdit-time',event:'showStartDate'}
+      ,{field:'end_time',title:'停服结束时间',width:230,unresize: false,templet:'#LAY-endEdit-time',event:'showEndDate'}
+      ,{field:'update_time',title:'操作时间',unresize: false}
+      ,{title:'状态',unresize: false,templet: '#LAY-game_stop-status'}
+      // ,{field:'sync_redis_time',title:'生效时间',unresize: false}
+      ,{field:'id',title:'操作',width:230,unresize: false,templet:function(d){
+        return '<a class="layui-btn layui-btn-xs" onclick="sync_redis('+d.id+')">生效</a>&nbsp;&nbsp;&nbsp;&nbsp;('+d.sync_redis_time+')';
+      }}
+    ]]   
+    ,page: true
+    ,done: function () {
+      $("[data-field='status']").css('display','none');
+    }
+  });
+  function updateField(id,field,value){
+    var loading = layer.msg('处理中...', {icon: 16,time:false});
+    admin.req({
+      url: layui.setter.api+'operate-game_stop_field_edit',
+      data: {'id':id,'field':field,'value':value},
+      type: 'post',
+      done: function(res){
+        setTimeout(function(){
+            layer.close(loading);
+            layer.msg(res.msg, {icon: 1})
+        },500)             
+      }
+    });    
+  }
+  //监听操作
+  form.on('switch(LAY-game_stop-status)', function(obj){
+    var status = this.checked ? 1 : 0;
+    // 获取当前控件                                                                  
+    let selectIfKey=obj.othis;                                                 
+    // 获取当前所在行                                                                 
+    let parentTr = selectIfKey.parents("tr");
+    //上线验证
+    if(status == 1){
+      //switch的value属性
+      let gameStatus = obj.elem.attributes['value'].nodeValue;
+      //eq(2): 代表的是表头字段位置
+      let introduction = $(parentTr).find("td:eq(2)").find(".layui-table-cell").text();
+      let startTime = $(parentTr).find("td:eq(3)").find(".layui-table-cell").text();    
+      let endTime = $(parentTr).find("td:eq(4)").find(".layui-table-cell").text();
+
+      if(gameStatus == 0){
+        layer.msg('该游戏已下架！', {icon: 5})
+        obj.elem.checked = false;
+        form.render();
+        return false      
+      }
+
+      if(!$.trim(introduction)){
+        layer.msg('请设置界面信息！', {icon: 5})
+        obj.elem.checked = false;
+        form.render();
+        return false      
+      }
+      if(!$.trim(startTime)){
+        layer.msg('请设置开始时间！', {icon: 5})
+        obj.elem.checked = false;
+        form.render();
+        return false      
+      }
+      if(!$.trim(endTime)){
+        layer.msg('请设置结束时间！', {icon: 5})
+        obj.elem.checked = false;
+        form.render();
+        return false      
+      } 
+    }
+// return false
+    let gameId = $(parentTr).find("td:eq(1)").find(".layui-table-cell").text();
+    var loading = layer.msg('处理中...', {icon: 16,time:false});
+    admin.req({
+      url: layui.setter.api+"operate-game_stop_field_edit"
+      ,data: {'id':gameId,'value':status,'field':'stop_status'}
+      ,done: function(data){
+        setTimeout(function(){
+            layer.close(loading);
+            layer.msg(data.msg, {icon: 1})
+        },500)
+      }
+    });      
+  });  
+  //监听单元格编辑
+  table.on('edit(LAY-table)', function(obj){
+
+    updateField(obj.data.game_id,obj.field,obj.value)
+
+  });  
+  //开始结束日期时间
+  // var startTimeObj = {}
+  // var endMinTime = '';
+  table.on('tool(LAY-table)', function (obj) {
+    var data = obj.data;
+    if (obj.event === 'showStartDate') {
+      let startMaxTime = $('#endTimeValue'+data.id).html()
+      startMaxTime = startMaxTime.replace('年', '-')
+      startMaxTime = startMaxTime.replace('月', '-')
+      startMaxTime = startMaxTime.replace('日', '')       
+      laydate.render({
+        elem: '#startTime'+data.id
+        ,type: 'datetime'
+        ,max: startMaxTime
+        // ,value: data.start_time
+        ,isInitValue: true
+        ,show: true //直接显示
+        ,format: 'yyyy年MM月dd日 HH:mm:ss'
+        ,done: function (value, date) {
+          let iLable = '<i id="startTime'+data.id+'" class="layui-icon layui-icon-date" style="font-size: 25px; color: #1E9FFF;float: right;cursor:pointer" title="编辑日期"></i>'
+          $('#startTime'+data.id).remove()
+          $('#startTimeValue'+data.id).html(value)
+          $('#startTimeValue'+data.id).after(iLable);
+
+          updateField(data.game_id,'start_time',value)
+          startTimeObj = date
+        }
+      });    
+    }else if(obj.event === 'showEndDate'){
+      // if(startTimeObj){
+      //   endMinTime = startTimeObj.year+'-'+startTimeObj.month+'-'+startTimeObj.date+' '+startTimeObj.hours+':'+startTimeObj.minutes+':'+startTimeObj.seconds
+      // }
+
+      let endMinTime = $('#startTimeValue'+data.id).html()
+      endMinTime = endMinTime.replace('年', '-')
+      endMinTime = endMinTime.replace('月', '-')
+      endMinTime = endMinTime.replace('日', '')      
+      laydate.render({
+        elem: '#endTime'+data.id
+        ,type: 'datetime'
+        ,min: endMinTime
+        ,show: true //直接显示
+        ,format: 'yyyy年MM月dd日 HH:mm:ss'
+        ,done: function (value, date) {
+
+          let iLable = '<i id="endTime'+data.id+'" class="layui-icon layui-icon-date" style="font-size: 25px; color: #1E9FFF;float: right;cursor:pointer" title="编辑日期"></i>'
+          $('#endTime'+data.id).remove()
+          $('#endTimeValue'+data.id).html(value)
+          $('#endTimeValue'+data.id).after(iLable);
+
+          updateField(data.game_id,'end_time',value)
+        }
+      });
+    }
+  }); 
+  //监听搜索
+  form.on('submit(LAY-search)', function(data){
+      table.reload('LAY-table', {
+          where:{
+              game_name: data.field.game_name
+          }
+          ,page: {
+              curr: 1 //重新从第 1 页开始
+          }
+          ,done:function(){
+              form.render();
+          }
+      });
+  });
+
+  // 同步缓存
+  window.sync_redis = function(id){
+    var loading = layer.msg('处理中...', {icon: 16,time:false});
+    admin.req({
+      url: layui.setter.api+"operate-game_stop_sync_redis"
+      ,data: {id:id}
+      ,done: function(data){
+        setTimeout(function(){
+          layer.close(loading);
+          layer.msg(data.msg, {icon: 1});
+          table.reload('LAY-table');
+        },500)
+      }
+    });
+  };  
+
+})
+</script>

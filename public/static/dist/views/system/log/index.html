@@ -1,0 +1,168 @@
+
+<title>操作日志</title>
+<style>
+/* 防止下拉框的下拉列表被隐藏---必须设置--- */
+.layui-table-cell {
+  height: auto;
+            /*空白会被浏览器忽略*/
+  white-space: normal;
+            /*允许长单词换行到下一行*/
+  word-wrap: break-word;
+            /*允许在单词内换行*/
+  word-break: break-all;
+  overflow: visible;
+  min-height: 28px;
+}
+
+.layui-table-box {
+    overflow: visible;
+}
+
+.layui-table-body {
+    overflow: visible;
+}
+/* 设置下拉框的高度与表格单元相同 */
+td .layui-form-select{
+  margin-top: -10px;
+  margin-left: -15px;
+  margin-right: -15px;
+}
+
+
+.play_type_table>.layui-form{
+  height: auto;
+}
+
+#add_service_div .layui-form-label{
+  width: 140px;
+}
+
+/* #add_service_div .layui-input-block{
+  width: 100px;
+} */
+</style>
+<div class="layui-card layadmin-header">
+  <div class="layui-breadcrumb" lay-filter="breadcrumb">
+    <a>系统管理</a>
+    <a>操作日志</a>
+  </div>
+</div>
+<div class="layui-fluid">
+  <div class="layui-row layui-col-space15">
+    <div class="layui-col-md12">
+      <div class="layui-card">
+        <div class="layui-form layui-card-header layuiadmin-card-header-auto" lay-filter="app-content-list">
+          <div class="layui-form-item">
+            <div class="layui-input-inline">
+                <input type="text" name="catalog_name" placeholder="操作目录" autocomplete="off" class="layui-input">
+            </div>
+
+            <div class="layui-input-inline">
+                <input type="text" name="username" placeholder="用户名" autocomplete="off" class="layui-input">
+            </div>
+
+            <div class="layui-input-inline">
+                <button class="layui-btn layuiadmin-btn-list" lay-submit="" lay-filter="LAY-search">
+                    <i class="layui-icon layui-icon-search layuiadmin-button-btn"></i>
+                </button>
+            </div>
+          </div>
+        </div>
+        <div class="layui-card-body">
+            <table class="layui-hide" id="LAY-table" lay-filter="LAY-table"></table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="layui-fluid" id="log_div" style="display: none">
+  <div class="layui-row layui-col-space15">
+    <div class="layui-col-md12">
+      <div class="layui-card">
+        <div class="layui-card-body">
+            <table class="layui-hide" id="LAY-update-table" lay-filter="LAY-update-table"></table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+layui.use(['admin', 'table', 'form'], function(){
+  var $ = layui.$
+  ,admin = layui.admin
+  ,table = layui.table
+  ,form = layui.form
+  ,router = layui.router();
+  form.render();
+
+  //监听搜索
+  form.on('submit(LAY-search)', function(data){
+      table.reload('LAY-table', {
+          where:{
+              username: data.field.username,
+              catalog_name: data.field.catalog_name,
+          }
+          ,page: {
+              curr: 1 //重新从第 1 页开始
+          }
+          ,done:function(){
+          }
+      });
+  });
+
+  window.check_info = function(id){
+    // admin.req({
+    //   url: layui.setter.api+"common-log_get_update_name"
+    //   ,data: {'catalog':catalog,'update_content':update_content}
+    //   ,done: function(data){
+        
+    //   }
+    // });
+
+    check = layer.open({
+      type: 1, 
+      title: '更新后内容',
+      shadeClose: true,
+      shade: 0,
+      area: ['30%', '60%'],
+      offset:'auto',
+      content: $("#log_div"), //这里content是一个普通的String
+      cancel:function(){
+        
+      }
+    });
+
+    table.render({
+      elem: '#LAY-update-table'
+      ,url:layui.setter.api+'common-log_get_update_name'
+      ,where:{
+        'id':id,
+      }
+      ,cellMinWidth: 80
+      ,cols: [[
+        {field:'field', title:'修改字段', unresize: false}
+        ,{field:'value', title:'修改后内容', unresize: false}
+      ]]
+      ,page: false
+    }); 
+  }
+
+  table.render({
+    elem: '#LAY-table'
+    ,url:layui.setter.api+'common-log_list'
+    ,cellMinWidth: 80
+    ,cols: [[
+      {field:'id', title:'操作序号', unresize: false}
+      ,{field:'user_name', title:'用户名', unresize: false}
+      ,{field:'catalog_name', title:'操作目录', unresize: false}
+      ,{title:'更新后内容', unresize: false,templet:function(d){
+        return '<a class="layui-btn layui-btn-xs" onclick="check_info('+d.id+')">查看</a>';
+
+      }}
+      ,{field:'create_time', title:'操作日期', unresize: false}
+    ]]
+    ,page: true
+  }); 
+});
+</script>

@@ -18,6 +18,7 @@ Vue.component('foot', require('./components/common/Footer.vue'));
 Vue.component('articles', require('./components/Articles.vue'));
 Vue.component('article_child', require('./components/Article_child.vue'));
 Vue.component('comments', require('./components/Comments.vue'));
+Vue.component('whispersa', require('./components/Whispers.vue'));
 
 // import Vue from 'vue';
 import ElementUI from 'element-ui'    //引入element－ui

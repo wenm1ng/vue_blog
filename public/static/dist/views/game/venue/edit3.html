@@ -1,0 +1,110 @@
+<style type="text/css">
+    .redRadius  .layui-form-radio div{
+        color:red;
+    }
+</style>
+
+<div class="layui-row">
+    <div class="layui-col-md3 layui-col-md-offset2">
+        <script type="text/html" template>
+            场次id:{{d.params.venue_id}}
+        </script>
+    </div>
+    <div class="layui-col-md7">
+        <script type="text/html" template>
+            所属游戏:{{d.params.name}}
+        </script>
+    </div>
+</div>
+
+<div class="layui-form" lay-filter="layuiadmin-form-edit3" style="padding: 20px 30px 0 0;" id="layuiadmin-form-venue_edit3"></div>
+
+<script>
+   
+    layui.use(['admin', 'form'], function(){
+        var $ = layui.$
+        ,admin = layui.admin
+        ,form = layui.form;
+
+        form.verify({
+            number_or_null: function(value, item){
+                if(value.trim() != ''){
+                    if (!/^\d+$/.test(value)) {
+                        return '必须为数字';
+                    }
+                }
+            }
+        });
+
+        var game_id = top.test.game_id;
+        var id = top.test.id;
+        
+        // 获取已经配置了的参数
+        admin.req({
+            url:layui.setter.api+'venue-venue_play_set',
+            data: {id:id},
+            done: function(data){
+                var play_set = JSON.parse(data.data.play_set);
+                // console.log(play_set);
+                admin.req({
+                    url:layui.setter.api+'game-game_play_list',
+                    data: {game_id:game_id},
+                    done: function(data){
+                        // console.log(data);
+                        var cop = '';
+                        if(data.code == 0){
+                            $.each(data.data,function(i,val){
+                                cop += '<div class="layui-form-item">';
+                                cop += '<label class="layui-form-label">'+val['name']+'</label>';
+                                cop += '<div class="layui-input-inline">';
+                                if (val['type'] == '1') {
+                                    val.json_text = JSON.parse(val.json_text);
+                                    cop += '<div class="redRadius" style="display:inline-block"><input type="radio" class="" name="pid_'+val['play_id']+'" value="-1" title="不选" style="color:#FF5722;" checked></div>';
+                                    $.each(val.json_text,function(index,val1){
+                                        if (play_set.hasOwnProperty(val['play_id']) && play_set[val['play_id']] == val1['id']) {
+                                            cop += '<input type="radio" name="pid_'+val['play_id']+'" value="'+val1['id']+'" title="'+val1['name']+'" checked>';
+                                        }else{
+                                            cop += '<input type="radio" name="pid_'+val['play_id']+'" value="'+val1['id']+'" title="'+val1['name']+'">';
+                                        }
+                                    });
+                                }else if (val['type'] == '2') {
+                                    val.json_text = JSON.parse(val.json_text);
+                                    var arr = [];
+                                    if (play_set.hasOwnProperty(val['play_id'])) {
+                                        var arr = play_set[val['play_id']].split(',');
+                                    }
+                                    $.each(val.json_text,function(index,val1){
+                                        if ($.inArray(val1['id'], arr) != -1) {
+                                            cop += '<input type="checkbox" name="pid_'+val['play_id']+'[]" value="'+val1['id']+'" title="'+val1['name']+'" lay-skin="primary" checked>';
+                                        }else{
+                                            cop += '<input type="checkbox" name="pid_'+val['play_id']+'[]" value="'+val1['id']+'" title="'+val1['name']+'" lay-skin="primary">';
+                                        }
+                                    });
+                                }else if (val['type'] == '3') {
+                                    if (play_set.hasOwnProperty(val['play_id'])) {
+                                        cop += '<input type="text" name="pid_'+val['play_id']+'" value="'+play_set[val['play_id']]+'" lay-verify="number_or_null" placeholder="请输入" autocomplete="off" class="layui-input">';
+                                    }else{
+                                        cop += '<input type="text" name="pid_'+val['play_id']+'" value="" lay-verify="number_or_null" placeholder="请输入" autocomplete="off" class="layui-input">';
+                                    }
+                                }
+                                cop += '</div>';
+                                cop += '</div>';
+                            });
+
+                            cop += '<div class="layui-form-item">';
+                            cop += '<label class="layui-form-label"></label>';
+                            cop += '<div class="layui-input-inline" style="text-align: center;margin-top: 15px;">';
+                            cop += '<input type="button" lay-submit lay-filter="LAY-user-back-submit" value="确认" class="layui-btn">';
+                            cop += '</div>';
+                            cop += '</div>';
+                        }
+                        $("#layuiadmin-form-venue_edit3").append(cop);
+                        form.render();
+                        cop = '';
+                        return false;
+                    }
+                });
+            }
+        });
+    });
+</script>

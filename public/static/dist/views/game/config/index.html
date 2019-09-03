@@ -1,0 +1,1833 @@
+
+<title>游戏配置</title>
+<!-- <link rel="stylesheet" type="text/css" href="./ossField/style.css"/>
+<script type="text/javascript" src="./ossField/lib/plupload-2.1.2/js/plupload.full.min.js?v=311"></script>
+<script type="text/javascript" src="./ossField/lib/plupload-2.1.2/js/md5.js?v=3"></script>
+<script type="text/javascript" src="./ossField/upload.js?v=1541111"></script> -->
+<style>
+/* 防止下拉框的下拉列表被隐藏---必须设置--- */
+.layui-table-cell {
+  height: auto;
+            /*空白会被浏览器忽略*/
+  white-space: normal;
+            /*允许长单词换行到下一行*/
+  word-wrap: break-word;
+            /*允许在单词内换行*/
+  word-break: break-all;
+  overflow: visible;
+  min-height: 28px;
+}
+
+.layui-table-box {
+    overflow: visible;
+}
+
+.layui-table-body {
+    overflow: visible;
+}
+/* 设置下拉框的高度与表格单元相同 */
+td .layui-form-select{
+  /*margin-top: -10px;*/
+  margin-left: -15px;
+  margin-right: -15px;
+}
+
+
+.play_type_table>.layui-form{
+  height: auto;
+}
+
+#add_service_div .layui-form-label{
+  width: 140px;
+}
+
+/* #add_service_div .layui-input-block{
+  width: 100px;
+} */
+</style>
+<div class="layui-card layadmin-header">
+  <div class="layui-breadcrumb" lay-filter="breadcrumb">
+    <a>游戏管理</a>
+    <a>游戏配置</a>
+  </div>
+</div>
+<div class="layui-fluid">
+  <div class="layui-row layui-col-space15">
+    <div class="layui-col-md12">
+      <div class="layui-card">
+
+        <div class="layui-form layui-card-header layuiadmin-card-header-auto" lay-filter="app-content-list">
+          <div class="layui-form-item">     
+              <div class="layui-input-inline">
+                  <input type="text" name="id_name" placeholder="游戏名/游戏ID" autocomplete="off" class="layui-input">
+              </div>
+
+              <div class="layui-input-inline">
+                  <button class="layui-btn layuiadmin-btn-list" lay-submit="" lay-filter="LAY-search">
+                      <i class="layui-icon layui-icon-search layuiadmin-button-btn"></i>
+                  </button>
+              </div>      
+              <div class="layui-inline" style="float: right;">  
+                                  
+                <button id="add" class="layui-btn layuiadmin-btn-list"><i class="layui-icon layui-icon-add-1 layuiadmin-button-btn"></i>新建游戏</button>
+              </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="layui-col-md12">
+      <div class="layui-card">
+        <div class="layui-card-body">
+            <table class="layui-hide" id="LAY-table" lay-filter="LAY-table"></table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!--新增modal-->
+<div class="layui-fluid" id="add_div" style="display:none">
+  <div class="layui-row layui-col-space15">
+    <div class="layui-col-md12">
+      <div class="layui-card">
+        <div class="layui-card-body" pad15>
+          
+          <div class="layui-form" lay-filter="lay-game-add">
+            <div class="layui-form-item">
+              <label class="layui-form-label">游戏id</label>
+              <div class="layui-input-inline">
+                <input type="text" name="game_id" placeholder="请输入游戏id" lay-verify="required|game_id" class="layui-input">
+              </div>
+            </div>
+            <div class="layui-form-item">
+              <label class="layui-form-label">游戏名称</label>
+              <div class="layui-input-inline">
+                <input type="text" name="game_name" autocomplete="off" placeholder="请输入游戏昵称" class="layui-input" lay-verify="required">
+              </div>
+            </div>
+            <div class="layui-form-item">
+              <div class="layui-input-block">
+                <button class="layui-btn" lay-submit lay-filter="add_game">立即添加</button>
+                <button class="layui-btn layui-btn-primary" id="cancel">取消</button>
+              </div>
+            </div>
+          </div>
+          
+        </div>
+      </div>
+    </div>
+  </div>
+</div> 
+
+<!--玩法配置-->
+<div class="layui-fluid" id="play_div" style="display:none">
+  <div class="layui-row layui-col-space15">
+    <div class="layui-col-md12">
+      <div class="layui-card">
+
+        <div class="layui-form layui-card-header layuiadmin-card-header-auto" lay-filter="app-content-list">
+          <div class="layui-form-item">    
+              <p style="margin-bottom:-7%;margin-left:25%"><span class="game_name"></span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="game_id"></span></p>
+              <div class="layui-inline" style="float: right;">         
+                <button class="layui-btn layuiadmin-btn-list" id="add_play" game_id='' play_id='' onclick="play_set_edit(this)"><i class="layui-icon layui-icon-add-1 layuiadmin-button-btn"></i>新增玩法类别</button>
+              </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="layui-col-md12">
+      <div class="layui-card">
+        <div class="layui-card-body">
+            <table class="layui-hide" id="LAY-table-play" lay-filter="LAY-table-play"></table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!--玩法类别-->
+<div class="layui-fluid" id="play_type_div" style="display:none">
+  <div class="layui-row layui-col-space15">
+    <div class="layui-col-md12 layui-form" lay-filter="play-form">
+      <div class="layui-card">
+        <div class="layui-card-body">
+            <table class="layui-hide" id="play_type_table_top" lay-filter="play_type_table_top"></table>
+        </div>
+      </div>
+      <div class="layui-card">
+        <div class="layui-card-body">
+            <table class="layui-hide" id="play_type_table" lay-filter="play_type_table"></table>
+        </div>
+      </div>
+      <div class="layui-form" lay-filter="play-edit-form">
+        <div class="layui-form-item">
+          <button class="layui-btn layuiadmin-btn-list" onclick="add_tr()"><i class="layui-icon layui-icon-add-1 layuiadmin-button-btn"></i></button>
+          <button type="button" class="layui-btn layuiadmin-btn-list" onclick="reduce_tr()">
+            <i class="layui-icon">&#xe640;</i>
+          </button>
+        </div>
+        <div class="layui-form-item">
+          <div class="layui-input-block">
+            <button class="layui-btn" lay-submit lay-filter="save_play_type">提交</button>
+            <button class="layui-btn layui-btn-primary" id="cancel_play">取消</button>
+          </div>
+        </div>
+      </div>
+      
+    </div>
+  </div>
+</div> 
+
+<!--服务器配置列表-->
+<div class="layui-fluid" id="service_div" style="display:none">
+  <div class="layui-row layui-col-space15">
+    <div class="layui-col-md12">
+      <div class="layui-card">
+
+        <div class="layui-form layui-card-header layuiadmin-card-header-auto" lay-filter="app-content-list">
+          <div class="layui-form-item"> 
+              <p style="margin-bottom:-7%;margin-left:25%"><span class="game_name"></span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="game_id"></span></p>
+              <div class="layui-inline" style="float: right;">         
+                <button class="layui-btn layuiadmin-btn-list" id="add_service" game_id='' service_id='' onclick="service_set_edit(this)"><i class="layui-icon layui-icon-add-1 layuiadmin-button-btn"></i>新增服务器配置</button>
+              </div>
+              <div class="layui-inline" style="float: right;">         
+                <button class="layui-btn layuiadmin-btn-list" id="service_change" game_id='' onclick="service_change(this)">开始切服</button>
+              </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="layui-col-md12">
+      <div class="layui-card">
+        <div class="layui-card-body">
+            <table class="layui-hide" id="LAY-table-service" lay-filter="LAY-table-service"></table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!--游戏配置添加、修改modal-->
+<div class="layui-fluid" id="add_service_div" style="display:none">
+  <div class="layui-row layui-col-space15">
+    <div class="layui-col-md10">
+      <div class="layui-card">
+        <div class="layui-card-body" pad15>
+          
+          <div class="layui-form" lay-filter="service-form">
+            <div class="layui-form-item">
+              <label class="layui-form-label">运维服务器ip</label>
+              <div class="layui-input-inline">
+                <input type="text" name="ip" placeholder="请输入运维服务器ip" lay-verify="required|ip" class="layui-input">
+              </div>
+            </div>
+            <div class="layui-form-item">
+              <label class="layui-form-label">运维服务器端口</label>
+              <div class="layui-input-inline">
+                <input type="text" name="dev_port" autocomplete="off" placeholder="请输入运维服务器端口" class="layui-input" lay-verify="required|number">
+              </div>
+            </div>
+            <div class="layui-form-item">
+              <label class="layui-form-label">金币管理ip</label>
+              <div class="layui-input-inline">
+                <input type="text" name="gold_ip" placeholder="请输入运维服务器ip" lay-verify="required|ip" class="layui-input">
+              </div>
+            </div>
+            <div class="layui-form-item">
+              <label class="layui-form-label">金币管理端口</label>
+              <div class="layui-input-inline">
+                <input type="text" name="gold_port" autocomplete="off" placeholder="请输入金币管理端口" class="layui-input" lay-verify="required|number">
+              </div>
+            </div>
+            <div class="layui-form-item">
+              <label class="layui-form-label">服务器承载房间</label>
+              <div class="layui-input-inline">
+                <input type="text" name="room_max_count" autocomplete="off" placeholder="请输入服务器承载房间数量" class="layui-input" lay-verify="required|number">
+              </div>
+            </div>
+            <div class="layui-form-item">
+              <label class="layui-form-label">服务器使用状态</label>
+              <div class="layui-input-inline">
+                <input type="checkbox" name="status" lay-skin="switch" lay-text="在线|下线" >
+              </div>
+            </div>
+            <div class="layui-form-item">
+              <label class="layui-form-label">服务器优先级</label>
+              <div class="layui-inline">
+                <select name="level" lay-verify="required">
+                  <option value=""></option>
+                  <option value="3">高</option>
+                  <option value="2">中</option>
+                  <option value="1">低</option>
+                </select>
+              </div>
+            </div>
+            <div class="layui-form-item">
+              <label class="layui-form-label">服务器备注</label>
+              <div class="layui-input-inline">
+                <input type="text" name="remark" autocomplete="off" placeholder="请输入服务器备注" class="layui-input" >
+              </div>
+            </div>
+            <div class="layui-form-item">
+              <div class="layui-input-block">
+                <input type="hidden" name="game_id" value="">
+                <input type="hidden" name="id" value="">
+                <button class="layui-btn" lay-submit lay-filter="save_service">提交</button>
+                <button class="layui-btn layui-btn-primary" id="cancel_service">取消</button>
+              </div>
+            </div>
+          </div>
+          
+        </div>
+      </div>
+    </div>
+  </div>
+</div> 
+
+
+<!--机器人服务器配置列表-->
+<div class="layui-fluid" id="robot_div" style="display:none">
+  <div class="layui-row layui-col-space15">
+    <div class="layui-col-md12">
+      <div class="layui-card">
+
+        <div class="layui-form layui-card-header layuiadmin-card-header-auto">
+          <div class="layui-form-item"> 
+              <p style="margin-bottom:-7%;margin-left:25%"><span class="game_name"></span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="game_id"></span></p>
+              <div class="layui-inline" style="float: right;">         
+                <button class="layui-btn layuiadmin-btn-list" id="add_robot" game_id='' robot_id='' onclick="robot_set_edit(this)"><i class="layui-icon layui-icon-add-1 layuiadmin-button-btn"></i>新增机器人配置</button>
+              </div>
+              <div class="layui-inline" style="float: right;">         
+                <button class="layui-btn layuiadmin-btn-list" id="robot_service_change" game_id='' onclick="robot_service_change(this)">开始切服</button>
+              </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="layui-col-md12">
+      <div class="layui-card">
+        <div class="layui-card-body">
+            <table class="layui-hide" id="LAY-table-robot" lay-filter="LAY-table-robot"></table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!--游戏配置添加、修改modal-->
+<div class="layui-fluid" id="add_robot_div" style="display:none">
+  <div class="layui-row layui-col-space15">
+    <div class="layui-col-md10">
+      <div class="layui-card">
+        <div class="layui-card-body" pad15>
+          
+          <div class="layui-form" lay-filter="robot-form">
+            <div class="layui-form-item">
+              <label class="layui-form-label">机器人服务器ip</label>
+              <div class="layui-input-inline">
+                <input type="text" name="ip" placeholder="请输入运维服务器ip" lay-verify="required|ip" class="layui-input">
+              </div>
+            </div>
+            <div class="layui-form-item">
+              <label class="layui-form-label">机器人服务器端口</label>
+              <div class="layui-input-inline">
+                <input type="text" name="dev_port" autocomplete="off" placeholder="请输入运维服务器端口" class="layui-input" lay-verify="required|number">
+              </div>
+            </div>
+            <div class="layui-form-item">
+              <label class="layui-form-label">服务器使用状态</label>
+              <div class="layui-input-inline">
+                <input type="checkbox" name="status" lay-skin="switch" lay-text="在线|下线" >
+              </div>
+            </div>
+            <div class="layui-form-item">
+              <label class="layui-form-label">服务器优先级</label>
+              <div class="layui-inline">
+                <select name="level" lay-verify="required">
+                  <option value=""></option>
+                  <option value="3">高</option>
+                  <option value="2">中</option>
+                  <option value="1">低</option>
+                </select>
+              </div>
+            </div>
+            <div class="layui-form-item">
+              <label class="layui-form-label">服务器备注</label>
+              <div class="layui-input-inline">
+                <input type="text" name="remark" autocomplete="off" placeholder="请输入服务器备注" class="layui-input" >
+              </div>
+            </div>
+            <div class="layui-form-item">
+              <div class="layui-input-block">
+                <input type="hidden" name="game_id" value="">
+                <input type="hidden" name="id" value="">
+                <button class="layui-btn" lay-submit lay-filter="save_robot">提交</button>
+                <button class="layui-btn layui-btn-primary" id="cancel_robot">取消</button>
+              </div>
+            </div>
+          </div>
+          
+        </div>
+      </div>
+    </div>
+  </div>
+</div> 
+
+<!--ZIP包配置列表-->
+<div class="layui-fluid" id="zip_div" style="display:none">
+  <div class="layui-row layui-col-space15">
+    <div class="layui-col-md12">
+      <div class="layui-card">
+        
+        <div class="layui-form layui-card-header layuiadmin-card-header-auto" lay-filter="app-content-list">
+          <div class="layui-form-item">     
+              <!-- <div class="layui-row">
+                <div class="layui-col-md3 layui-col-md-offset2">
+                  游戏名称:123
+                </div>
+                <div class="layui-col-md7">
+                  游戏id:456
+                </div>
+              </div>     -->     
+              <p style="margin-bottom:-7%;margin-left:25%"><span class="game_name"></span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="game_id"></span></p>
+              <div class="layui-inline" style="float: right;">   
+                <button class="layui-btn layuiadmin-btn-list" id="add_zip" game_id='' service_id='' onclick="zip_add(this)"><i class="layui-icon layui-icon-add-1 layuiadmin-button-btn"></i>上传新包</button>
+              </div>             
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="layui-col-md12">
+      <div class="layui-card">
+        <div class="layui-card-body">
+            <table class="layui-hide" id="LAY-table-zip" lay-filter="LAY-table-zip"></table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="layui-fluid" id="zip_add_div" style="display:none">
+  <div class="layui-row layui-col-space15">
+    <div class="layui-col-md12">
+      <div class="layui-card layui-form" lay-filter="zip-form">
+        <div class="layui-card-body">
+            <table class="layui-hide" id="zip_add_table" lay-filter="zip_add_table"></table>
+        </div>
+        <div class="layui-form-item" style="margin-left:40%">
+          <input type="hidden" name="game_id" value="">
+          <button class="layui-btn layui-btn-disabled" id="save_zip" disabled="disabled" lay-submit lay-filter="save_zip">提交</button>
+          <button class="layui-btn layui-btn-primary" id="cancel_zip">取消</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- <div class="layui-fluid" id="zip_add_div" style="display:none">
+  <div class="layui-row layui-col-space15">
+    <div class="layui-col-md12">
+      <div class="layui-card">
+        <div class="layui-card-body">
+            <table class="layui-table" lay-data="{height:280}" lay-filter="zip_add_table">
+              <thead>
+                <tr>
+                  <th lay-data="{field:'username', width:150}"></th>
+                  <th lay-data="{field:'experience', width:150}">当前版本</th>
+                  <th lay-data="{field:'sign', width:404}">更新版本</th>
+                </tr> 
+              </thead>
+              <tbody>
+                <tr>
+                  <td>游戏开发编号</td>
+                  <td>暂无</td>
+                  <td><p contenteditable="true"></p></td>
+                </tr>
+                <tr>
+                  <td>ZIP包游戏入口</td>
+                  <td>暂无</td>
+                  <td><p contenteditable="true"></p></td>
+                </tr>
+                <tr>
+                  <td>ZIP资源</td>
+                  <td>暂无</td>
+                  <td>
+                    <a class="layui-btn" id="upload_zip11">上传</a>
+                    <button class="layui-btn layui-btn-primary" id="back">回退</button>
+                  </td>
+                </tr>
+                <tr>
+                  <td>版本说明</td>
+                  <td>暂无</td>
+                  <td><p contenteditable="true"></p></td>
+                </tr>
+              </tbody>
+            </table>
+        </div>
+        <div class="layui-form-item" style="margin-left:40%">
+          <input type="hidden" name="game_id" value="">
+          <button class="layui-btn" lay-submit lay-filter="save_zip" id="upload_zip">提交</button>
+          <button class="layui-btn layui-btn-primary" id="cancel_zip">取消</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div> -->
+<!--上传包-->
+
+<!-- <script type="text/html" id="LAY-play">
+  <a class="layui-btn layui-btn-xs" id="play">配置</a>
+</script>  -->
+<script>
+
+layui.use(['admin', 'table', 'form', 'upload'], function(){
+  var $ = layui.$
+  ,admin = layui.admin
+  ,table = layui.table
+  ,upload = layui.upload
+  ,form = layui.form
+  ,router = layui.router();
+  form.render();
+
+  //监听搜索
+  form.on('submit(LAY-search)', function(data){
+      
+      table.reload('LAY-table',{
+        where:{
+            id_name: data.field.id_name,
+        }
+        ,page: {
+            curr: 1 //重新从第 1 页开始
+        }
+        ,done:function(){
+            form.render();
+        }
+      });
+  });
+
+  $("#add").click(function(){
+    index = layer.open({
+        type: 1, 
+        title: '新增游戏',
+        shadeClose: true,
+        shade: 0,
+        area: ['20%', '30%'],
+        offset:'auto',
+        content: $("#add_div"), //这里content是一个普通的String
+        cancel:function(){
+          $("input[name='game_id']").val('');
+          $("input[name='game_name']").val('');
+        }
+    });
+  })
+
+  $("#cancel").click(function(){
+    layer.close(index);
+    $("input[name='game_id']").val('');
+    $("input[name='game_name']").val('');
+  })
+
+  // 查看图片
+  window.show_pic = function (src){
+      var arr = {
+          "data":[]
+          // "start": $(dom).index(),
+      }
+      arr['data'].push({"src":src})
+      layer.photos({
+          photos: arr
+      });
+  }
+
+  table.render({
+    elem: '#LAY-table'
+    ,url:layui.setter.api+'game-config_list'
+    ,cellMinWidth: 80
+    ,cols: [[
+      {field:'game_id', title:'游戏id', unresize: false}
+      ,{field:'name', edit:'text',title:'游戏名称',unresize: false}
+      ,{field:'type_id', title:'游戏类型',unresize: false,templet: function(d){
+        var div = '<option value=""></option>\n';
+        layui.each(d.type_list, function(index, item){
+          if(item.type_id == d.type_id){
+            div += '<option value="'+item.type_id+'" selected="">'+item.name+'</option>';
+          }else{
+            div += '<option value="'+item.type_id+'">'+item.name+'</option>';
+          }
+        })
+        return '<select name="select_type" lay-filter="select_type" lay-verify="required" lay-search  id="'+d.id+'">\n' + div+ '</select>';
+        }}
+      ,{title:'游戏图片',width:120,unresize: false,templet:function(d){
+        div = '';
+        div += '<div style="display: -webkit-inline-box;cursor:pointer" title="游戏名称图片">';
+        // div += '<img style="height: 100px;margin-right: 5px;" src="'+d.name_img+'" onclick="show_pic(this)">'
+        div +='<a class="layui-btn layui-btn-xs" id="game-img-'+d.id+'" >上传</a>&nbsp;<a class="layui-btn layui-btn-xs" onclick="show_pic(\''+d.name_img+'\')" >查看</a>';
+        div += '</div>';
+        return div;
+      }}
+      ,{field:'sort', title:'排序', edit:'text',unresize: false}
+      ,{title:'玩法配置',unresize: false,templet:function(d){
+        return '<a class="layui-btn layui-btn-xs" onclick="play_click('+d.game_id+')">配置</a>';
+      }}
+      ,{title:'服务器配置',unresize: false,templet:function(d){
+        return '<a class="layui-btn layui-btn-xs" onclick="service_click('+d.game_id+')">配置</a>';
+      }}
+      ,{title:'机器人配置',unresize: false,templet:function(d){
+        return '<a class="layui-btn layui-btn-xs" onclick="robot_click('+d.game_id+')">配置</a>';
+      }}
+      ,{field:'status', title:'游戏状态', unresize: false,templet:function(d){
+        if(d.status == 1){
+          var checked = 'checked';
+        }else{
+          var checked = '';
+        }
+        return '<input type="checkbox" name="close" lay-skin="switch" lay-filter="LAY-status" value="'+d.id+'" lay-text="在线|下线" '+checked+'>';
+      }}
+      ,{field:'version_id',width:200, title:'当前zip版本', unresize: false}
+      ,{title:'ZIP包配置',unresize: false,templet:function(d){
+        return '<a class="layui-btn layui-btn-xs" onclick="zip_click('+d.game_id+')">配置</a>';
+      }}
+      ,{field:'update_time',width:160,title:'操作时间',unresize: false}      
+      ,{field:'id',title:'操作',unresize: false,align:'left',width:210,templet:function(d){
+        return '<a class="layui-btn layui-btn-xs" onclick="sync_redis('+d.game_id+')">生效</a>&nbsp;&nbsp;('+d.sync_redis_time+')';
+      }}
+    ]]
+    ,page: true
+    ,done:function(res, curr, count){
+      $.each(res.data,function(i){             
+          inee(res.data[i].id)
+      });      
+      form.render();
+    }
+  }); 
+
+  //监听上下线
+  form.on('switch(LAY-status)', function(obj){
+      var status = this.checked ? 1 : 0;
+      var loading = layer.msg('处理中...', {icon: 16,time:false});
+      admin.req({
+        url: layui.setter.api+"game-config_save"
+        ,data: {'id':obj.value,'value':status,'field':'status'}
+        ,done: function(data){
+          setTimeout(function(){
+              layer.close(loading);
+              layer.msg(data.msg, {icon: 1})
+          },500)
+        }
+      });      
+  });
+  
+  function inee(id){
+    upload.render({
+      elem:'#game-img-'+id //绑定元素
+      ,acceptMime: 'image/jpg, image/png, image/jpeg'
+      ,url: layui.setter.api+'game-config_img_upload?id='+id+'&access_token='+layui.data(layui.setter.tableName)['access_token']
+      ,exts:'jpg|png|jpeg'
+      ,auto: true //选择文件后自动上传
+      ,before:function(){
+        upload_loading = layer.msg('上传中...', {icon: 16,time:false});
+      }
+      ,done: function(res){ //上传后的回调
+        setTimeout(function(){
+            layer.close(upload_loading);
+            table.reload('LAY-table');
+            layer.msg('上传成功！', {icon: 6});
+        },500)
+      }
+    });
+  }  
+
+
+  // 监听修改update到表格中
+  form.on('select(select_type)', function (data) {
+      // debugger;
+      var id = data.elem.getAttribute('id');
+      var field = 'type_id';
+      var val = data.value;
+
+      if(val == ''){
+        layer.alert('此选项不能为空',{icon:5});return;
+      }
+
+      var loading = layer.msg('处理中...', {icon: 16,time:false});
+      admin.req({
+        url: layui.setter.api+'game-config_save',
+        data: {'id':id,'field':field,'value':val},
+        type: 'post',
+        done: function(res){
+          setTimeout(function(){
+              layer.close(loading);
+              layer.msg(res.msg, {icon: 1})
+          },500)             
+        }
+      }); 
+  });
+
+  //监听上下线
+  form.on('switch(LAY-status-service)', function(obj){
+      var status = this.checked ? 1 : 0;
+      var loading = layer.msg('处理中...', {icon: 16,time:false});
+      admin.req({
+        url: layui.setter.api+"game-config_save_service_one"
+        ,data: {'id':obj.value,'value':status,'field':'status'}
+        ,done: function(data){
+          setTimeout(function(){
+              layer.close(loading);
+              layer.msg(data.msg, {icon: 1})
+          },500)
+        }
+      });      
+  });
+
+  // 同步缓存
+  window.sync_redis = function(game_id){
+    var loading = layer.msg('处理中...', {icon: 16,time:false});
+    admin.req({
+      url: layui.setter.api+"game-game_sync_redis"
+      ,data: {game_id:game_id}
+      ,done: function(data){
+        table.reload('LAY-table');
+        setTimeout(function(){
+          layer.close(loading);
+          layer.msg(data.msg, {icon: 1});
+        },500)
+      }
+    });
+  };
+
+  //弹出服务器配置列表
+  window.service_click = function(game_id){
+
+    //加载数据
+    table.render({
+      elem: '#LAY-table-service'
+      ,url:layui.setter.api+'game-config_service_list'
+      ,cellMinWidth: 80
+      ,where :{
+        id:game_id
+      }
+      ,cols: [[
+        {field:'id', title:'服务器id',unresize: false}
+        ,{field:'ip', title:'运维服务器ip',unresize: false}
+        ,{field:'dev_port', title:'运维服务器端口高防',unresize: false}
+        ,{field:'gold_ip', title:'金币管理ip',unresize: false}
+        ,{field:'gold_port', title:'金币管理端口非高防',unresize: false}
+        ,{field:'room_max_count', title:'房间承载数量',unresize: false}
+        ,{field:'status', title:'服务器使用状态',unresize: false,templet:function(d){
+          if(d.status == 1){
+            var checked = 'checked';
+          }else{
+            var checked = '';
+          }
+          return '<input type="checkbox" name="close" lay-skin="switch" lay-filter="LAY-status-service" value="'+d.id+'" lay-text="在线|下线" '+checked+'>';
+        }}
+        ,{field:'level_name', title:'服务器优先级',unresize: false}
+        ,{field:'remark', title:'服务器备注',unresize: false}
+        ,{title:'操作',unresize: false,templet:function(d){
+        return '<a class="layui-btn layui-btn-xs" game_id="'+game_id+'" service_id="'+d.id+'" onclick="service_set_edit(this)">编辑</a>';
+        }}
+        
+      ]]
+      ,page: true
+      ,done:function(res, curr, count){
+        $("#service_div").find('.game_name').html('游戏名称：'+res.info.name);
+        $("#service_div").find('.game_id').html('游戏id:'+res.info.game_id);
+
+        //将游戏id记录
+        $("#add_service").attr('game_id',game_id);
+        $("#service_change").attr('game_id',game_id);
+        $("#add_service").attr('play_id','');
+        $("#add_service_div").find('[name="game_id"]').val(game_id);
+      }
+    }); 
+
+    service = layer.open({
+        type: 1, 
+        title: '服务器配置',
+        shadeClose: true,
+        shade: 0,
+        area: ['50%', '70%'],
+        offset:'auto',
+        content: $("#service_div"), //这里content是一个普通的String
+        cancel:function(){
+          $("input[name='game_id']").val('');
+          $("input[name='game_name']").val('');
+        }
+    });
+  }
+
+/****************************************robot开始**********************************************/
+
+
+  //监听上下线(robot)
+  form.on('switch(LAY-status-robot)', function(obj){
+      var status = this.checked ? 1 : 0;
+      var loading = layer.msg('处理中...', {icon: 16,time:false});
+      admin.req({
+        url: layui.setter.api+"game-config_save_robot_one"
+        ,data: {'id':obj.value,'value':status,'field':'status'}
+        ,done: function(data){
+          setTimeout(function(){
+              layer.close(loading);
+              layer.msg(data.msg, {icon: 1})
+          },100)
+        }
+      });      
+  });
+
+  //弹出服务器配置列表
+  window.robot_click = function(game_id){
+
+    //加载数据
+    table.render({
+      elem: '#LAY-table-robot'
+      ,url:layui.setter.api+'game-config_robot_list'
+      ,cellMinWidth: 80
+      ,where :{
+        id:game_id
+      }
+      ,cols: [[
+        {field:'ip', title:'机器人服务器ip',unresize: false}
+        ,{field:'dev_port', title:'机器人服务器端口',unresize: false}
+        ,{field:'status', title:'服务器使用状态',unresize: false,templet:function(d){
+          if(d.status == 1){
+            var checked = 'checked';
+          }else{
+            var checked = '';
+          }
+          return '<input type="checkbox" name="close" lay-skin="switch" lay-filter="LAY-status-robot" value="'+d.id+'" lay-text="在线|下线" '+checked+'>';
+        }}
+        ,{field:'level_name', title:'服务器优先级',unresize: false}
+        ,{field:'remark', title:'服务器备注',unresize: false}
+        ,{title:'操作',unresize: false,templet:function(d){
+        return '<a class="layui-btn layui-btn-xs" game_id="'+game_id+'" robot_id="'+d.id+'" onclick="robot_set_edit(this)">编辑</a>';
+        }}
+        
+      ]]
+      ,page: true
+      ,done:function(res, curr, count){
+        $("#robot_div").find('.game_name').html('游戏名称：'+res.info.name);
+        $("#robot_div").find('.game_id').html('游戏id:'+res.info.game_id);
+
+        //将游戏id记录
+        $("#add_robot").attr('game_id',game_id);
+        $("#robot_service_change").attr('game_id',game_id);
+        $("#add_robot").attr('play_id','');
+        $("#add_robot_div").find('[name="game_id"]').val(game_id);
+      }
+    }); 
+
+    robot = layer.open({
+        type: 1, 
+        title: '机器人服务器配置',
+        shadeClose: true,
+        shade: 0,
+        area: ['50%', '70%'],
+        offset:'auto',
+        content: $("#robot_div"), //这里content是一个普通的String
+        cancel:function(){
+          
+        }
+    });
+  }
+
+  //机器人服务器配置添加、修改(robot)
+  window.robot_set_edit = function(obj){
+    robot_id = obj.getAttribute('robot_id');
+    if(robot_id == ''){
+      robot_edit = layer.open({
+          type: 1, 
+          title: '新增配置',
+          shadeClose: true,
+          shade: 0,
+          area: ['40%', '60%'],
+          offset:'auto',
+          content: $("#add_robot_div"), //这里content是一个普通的String
+          cancel:function(){
+            form.val('robot-form', {
+              "ip":'',
+              "dev_port":'',
+              "status":'',
+              "level":'',
+              "remark":'',
+            })
+
+            form.render();
+          }
+      });
+    }else{
+      //编辑，有默认值
+
+      admin.req({
+        url: layui.setter.api+'game-config_get_robot',
+        data: {'id':robot_id},
+        type: 'post',
+        async:false, 
+        done: function(data){
+          var res = data.data.data;
+
+          //表单初始赋值
+          form.val('robot-form', {
+            "ip":res.ip,
+            "dev_port":res.dev_port,
+            "status":res.status,
+            "level":res.level,
+            "remark":res.remark,
+            "id":res.id
+          })
+
+          form.render();
+        }
+      });  
+
+      robot_edit = layer.open({
+          type: 1, 
+          title: '新增配置',
+          shadeClose: true,
+          shade: 0,
+          area: ['40%', '60%'],
+          offset:'auto',
+          content: $("#add_robot_div"), //这里content是一个普通的String
+          cancel:function(){
+            form.val('robot-form', {
+              "ip":'',
+              "dev_port":'',
+              "status":'',
+              "level":'',
+              "remark":'',
+              "id":'',
+            })
+
+            form.render();
+          }
+      });
+    }
+    
+
+    $("#cancel_robot").click(function(){
+      layer.close(robot_edit);
+      form.val('robot-form', {
+        "ip":'',
+        "dev_port":'',
+        "status":'',
+        "level":'',
+        "remark":'',
+        "id":'',
+      })
+
+      form.render();
+    })
+    
+  }
+
+  //游戏服务器提交form
+  form.on('submit(save_robot)', function(data){
+    var loading = layer.msg('处理中...', {icon: 16,time:false});
+    admin.req({
+      url: layui.setter.api+'game-config_save_robot',
+      data: data.field,
+      type: 'post',
+      done: function(res){
+        setTimeout(function(){
+            layer.close(loading);
+            layer.msg(res.msg, {icon: 1},function(){
+              layer.close(robot_edit);
+              table.reload('LAY-table-robot');
+            })
+        },100)
+      }
+    });
+    return false;
+  });
+
+/****************************************robot结束**********************************************/
+
+  //弹出zip包列表
+  window.zip_click = function(game_id){
+    //加载数据
+    table.render({
+      elem: '#LAY-table-zip'
+      ,url:layui.setter.api+'game-config_zip_list'
+      ,cellMinWidth: 80
+      ,where :{
+        id:game_id
+      }
+      ,cols: [[
+        {field:'version_id', title:'版本号',unresize: false}
+        ,{field:'create_time', title:'版本提交时间',unresize: false}
+        ,{field:'pk_name', title:'版本包名',unresize: false}
+        ,{field:'url', title:'版本下载地址',unresize: false,templet:function(d){
+          return '<a class="layui-btn layui-btn-xs" target="__blank" href="'+d.url+'">下载</a>';
+        }}
+        ,{field:'remark', title:'版本说明',unresize: false}
+        ,{title:'操作',unresize: false,templet:function(d){
+          if(d.is == 2){
+            var a = '<a class="layui-btn layui-btn-xs" game_id="'+game_id+'" zip_id="'+d.id+'" onclick="zip_back(this)">回退到此版本</a><a class="layui-btn layui-btn-xs" game_id="'+game_id+'" zip_id="'+d.id+'" onclick="zip_del(this)">删除</a>';
+          }else{
+            var a = '';
+          }
+          return a;
+        }}
+        
+      ]]
+      ,page: true
+      ,done:function(res, curr, count){
+        console.log(res);
+        //将游戏id记录
+        $("#add_zip").attr('game_id',game_id);
+        $("#add_zip").attr('zip_id','');
+        $("#add_zip_div").find('[name="game_id"]').val(game_id);
+        $("#zip_div").find('.game_name').html('游戏名称：'+res.info.name);
+        $("#zip_div").find('.game_id').html('游戏id：'+res.info.game_id);
+      }
+    }); 
+
+    service = layer.open({
+        type: 1, 
+        title: 'ZIP包配置',
+        shadeClose: true,
+        shade: 0,
+        area: ['50%', '70%'],
+        offset:'auto',
+        content: $("#zip_div"), //这里content是一个普通的String
+        cancel:function(){
+          
+        }
+    });
+
+  }
+
+  //版本回退
+  window.zip_back = function(obj){
+    zip_id = obj.getAttribute('zip_id');
+    game_id = obj.getAttribute('game_id');
+    layer.confirm('确定要进行该操作吗？',{btn:['确定','取消'],tittle:'提示'},function(){
+      admin.req({
+        url: layui.setter.api+'game-config_zip_back',
+        data: {'zip_id':zip_id,'game_id':game_id},
+        type: 'post',
+        async:false, 
+        done: function(data){
+          // var res = data.data.data;
+          layer.close(layer.index);
+          table.reload('LAY-table-zip');
+          table.reload('LAY-table')
+        }
+      });  
+    });
+  }
+
+  //删除版本
+  window.zip_del  = function(obj){
+    zip_id = obj.getAttribute('zip_id');
+    game_id = obj.getAttribute('game_id');
+    layer.confirm('确定要进行该操作吗？',{btn:['确定','取消'],tittle:'提示'},function(){
+      admin.req({
+        url: layui.setter.api+'game-config_zip_del',
+        data: {'zip_id':zip_id,'game_id':game_id},
+        type: 'post',
+        async:false, 
+        done: function(data){
+          // var res = data.data.data;
+          layer.close(layer.index);
+          table.reload('LAY-table-zip');
+        }
+      });  
+    });
+  }
+
+  //弹出上传modal
+  window.zip_add = function(obj){
+    game_id = obj.getAttribute('game_id');
+    zip_index = layer.open({
+        type: 1, 
+        title: '上传zip包',
+        shadeClose: true,
+        shade: 0,
+        area: ['40%', '60%'],
+        offset:'auto',
+        content: $("#zip_add_div"), //这里content是一个普通的String
+        cancel:function(){
+          
+        }
+    });
+
+    //初始化table
+    table.render({
+      elem: '#zip_add_table'
+      ,url:layui.setter.api+'game-config_zip_info'
+      ,cellMinWidth: 80
+      ,where:{
+        id:game_id
+      }
+      ,cols: [[
+        {field:'title', title:'',unresize: false,width:150}
+        ,{field:'now', title:'当前版本',unresize: false,width:150}
+        // ,{field:'update', title:'更新版本',unresize: false,width:404,templet: '#LAY-upload_zip'}
+        ,{field:'update', title:'更新版本（格式：hongzhongmjgold_1.0.1）',unresize: false,width:404,templet:function(d){
+          if(d.update == 1){
+            return '<input type="text" name="remark" required autocomplete="off" class="layui-input">'
+          }else{           
+            let uploadCss = '';
+                uploadCss += '<div id="ossfile">你的浏览器不支持flash,Silverlight或者HTML5！</div><pre id="console"></pre>';
+                uploadCss += '<div id="container">';
+                uploadCss +=  '<a id="selectfiles" href="javascript:void(0);" class="btn">选择文件</a>';
+                uploadCss +=  '<a id="postfiles" href="javascript:void(0);" class="btn" style="margin-left: 10px;">开始上传</a>';
+                uploadCss += '</div>';
+                uploadCss += '<input type="hidden" name="allUrl" id="allUrl" value="">';
+                uploadCss += '<link rel="stylesheet" type="text/css" href="./ossField/style.css"/><script type="text/javascript" src="./ossField/lib/plupload-2.1.2/js/plupload.full.min.js?v=311"><\/script><script type="text/javascript" src="./ossField/lib/plupload-2.1.2/js/md5.js?v=3"><\/script><script type="text/javascript" src="./ossField/upload.js?v=15"><\/script>';
+            return uploadCss;
+            // return '<a class="layui-btn" id="upload_zip">上传</a><input type="hidden" name="url" value=""><input type="hidden" name="pk_name" value=""><input type="hidden" name="version_id" value="">';
+          }
+        }}
+      ]]
+      ,page: false
+      ,done:function(res, curr, count){
+        // console.log(document.getElementById('layui-layer2'),1111)
+
+        // setTimeout(function(){
+        // let nowDate = new Date()
+        // let now = nowDate.getTime()
+        // layui.link('ossField/style.css?v='+now)    
+        // layui.link("ossField/lib/plupload-2.1.2/js/plupload.full.min.js?v="+now);
+        // layui.link("ossField/lib/plupload-2.1.2/js/md5.js?v="+now); 
+        // layui.link("ossField/upload.js?v="+now);
+        // },1000) 
+
+        // table.reload('idTest');         
+        // upload.render({
+        //   elem:'#upload_zip' //绑定元素
+        //   ,acceptMime: '.zip'
+        //   ,url: layui.setter.api+'game-config_zip_upload'
+        //   ,exts:'zip'
+        //   ,auto: true //选择文件后自动上传
+        //   ,before:function(){
+        //     upload_loading = layer.msg('上传中...', {icon: 16,time:false});
+        //   }
+        //   ,done: function(res){ //上传后的回调
+        //     setTimeout(function(){
+        //         layer.close(upload_loading);
+        //         // console.log(res);return;
+        //         // table.reload('LAY-table');
+        //         layer.msg('上传成功！', {icon: 6});
+        //         $("#upload_zip").parent().prepend('<span>'+res.data.complete_url+'</span>');
+        //         $("#upload_zip").parent().find('a').remove()
+
+        //         form.val('zip-form',{
+        //           'url':res.data.url,
+        //           'pk_name':res.data.pk_name,
+        //           'version_id':res.data.version_id
+        //         })
+        //         form.render();
+        //     },500)
+        //   }
+        // });
+        
+        // $("#back").on('click',function(){
+        //   console.log(55);
+          
+        //   $("#upload_zip").hide();
+        //   $("#back").hide();
+
+        //   $("#zip_select").removeClass('layui-hide');
+        //   $("#zip_add_table").find('.layui-form-select').show();
+        //   $("#back_cancel").show();
+        // })
+
+        // window.back_cancel = function(obj){
+        //   console.log(11);
+        //   // div = '<a class="layui-btn" id="upload_zip">上传</a>&nbsp;<button class="layui-btn layui-btn-primary" id="back">回退</button>';
+        //   // obj.parentNode.innerHTML = div;
+        //   $("#upload_zip").show();
+        //   $("#back").show();
+
+        //   $("#zip_add_table").find('.layui-form-select').hide();
+        //   $("#zip_select").addClass('layui-hide');
+        //   $("#back_cancel").hide();
+        // }
+
+        // form.render();
+        //将游戏id记录
+        $("#add_zip").attr('game_id',game_id);
+        $("#add_zip").attr('zip_id','');
+        $("#zip_add_div").find("[name='game_id']").val(game_id);
+      }
+    }); 
+
+    $("#cancel_zip").click(function(){
+      layer.close(zip_index);
+    })
+    
+  }
+
+  //zip上传提交
+  form.on('submit(save_zip)', function(data){
+    flag = 0;
+    var loading = layer.msg('处理中...', {icon: 16,time:false});
+
+    // var version_id = $("#zip_add_div").find('tbody').find('tr[data-index="0"]').find('td[data-field="update"]').find('p').html();
+    // var entrance = $("#zip_add_div").find('tbody').find('tr[data-index="1"]').find('td[data-field="update"]').find('p').html();
+    // var url = $("#zip_add_div").find('tbody').find('tr[data-index="2"]').find('td[data-field="update"]').find('div').html();
+    // var remark = $("#zip_add_div").find('tbody').find('tr[data-index="3"]').find('td[data-field="update"]').find('p').html();
+    // var game_id = $("#zip_add_div").find('[name="game_id"]').val();
+    // console.log(data.field);return;
+    // if(url == ''){
+    //   layer.alert('请上传ZIP资源',{icon:5});return;
+    // }
+
+    // if(remark == ''){
+    //   layer.alert('请输入版本说明',{icon:5});return;
+    // }
+    if(data.field.allUrl == ''){
+      layer.msg('请上传ZIP资源',{icon:5});return;
+    }
+
+    if(game_id == ''){
+      layer.msg('服务器繁忙，请刷新重试',{icon:5});return;
+    }
+
+    admin.req({
+      url: layui.setter.api+'game-config_add_zip',
+      data: data.field,
+      type: 'post',
+      done: function(res){
+        setTimeout(function(){
+            layer.close(loading);
+            layer.msg(res.msg, {icon: 1},function(){
+              layer.close(zip_index);
+              table.reload('LAY-table-zip');
+              table.reload('LAY-table');
+            })
+        },500)
+      }
+    });
+    return false;
+  });
+
+  //服务器配置添加、修改
+  window.service_set_edit = function(obj){
+    service_id = obj.getAttribute('service_id');
+    if(service_id == ''){
+      service_edit = layer.open({
+          type: 1, 
+          title: '新增配置',
+          shadeClose: true,
+          shade: 0,
+          area: ['40%', '60%'],
+          offset:'auto',
+          content: $("#add_service_div"), //这里content是一个普通的String
+          cancel:function(){
+            form.val('service-form', {
+              "ip":'',
+              "dev_port":'',
+              "gold_ip":'',
+              "gold_port":'',
+              "room_max_count":'',
+              "status":'',
+              "level":'',
+              "remark":'',
+            })
+
+            form.render();
+          }
+      });
+    }else{
+      //编辑，有默认值
+
+      admin.req({
+        url: layui.setter.api+'game-config_get_service',
+        data: {'id':service_id},
+        type: 'post',
+        async:false, 
+        done: function(data){
+          var res = data.data.data;
+
+          //表单初始赋值
+          form.val('service-form', {
+            "ip":res.ip,
+            "dev_port":res.dev_port,
+            "gold_ip":res.gold_ip,
+            "gold_port":res.gold_port,
+            "room_max_count":res.room_max_count,
+            "status":res.status,
+            "level":res.level,
+            "remark":res.remark,
+            "id":res.id
+          })
+
+          form.render();
+        }
+      });  
+
+      service_edit = layer.open({
+          type: 1, 
+          title: '新增配置',
+          shadeClose: true,
+          shade: 0,
+          area: ['40%', '60%'],
+          offset:'auto',
+          content: $("#add_service_div"), //这里content是一个普通的String
+          cancel:function(){
+            form.val('service-form', {
+              "ip":'',
+              "dev_port":'',
+              "gold_ip":'',
+              "gold_port":'',
+              "room_max_count":'',
+              "status":'',
+              "level":'',
+              "remark":'',
+              "id":'',
+            })
+
+            form.render();
+          }
+      });
+    }
+    
+
+    $("#cancel_service").click(function(){
+      layer.close(service_edit);
+      form.val('service-form', {
+        "ip":'',
+        "dev_port":'',
+        "gold_ip":'',
+        "gold_port":'',
+        "room_max_count":'',
+        "status":'',
+        "level":'',
+        "remark":'',
+        "id":'',
+      })
+
+      form.render();
+    })
+    
+  }
+
+// 服务器切服
+window.service_change = function(obj){
+  var s_game_id = obj.getAttribute('game_id');
+  var p_type = 1;
+  var loading = layer.msg('处理中...', {icon: 16,time:false});
+  admin.req({
+    url: layui.setter.api+"game-game_service_change_push"
+    ,data: {game_id:s_game_id,p_type:p_type}
+    ,done: function(data){
+      table.reload('LAY-table');
+      setTimeout(function(){
+        layer.close(loading);
+        layer.msg(data.msg, {icon: 1});
+      },500)
+    }
+  });
+}
+
+// 服务器切服
+window.robot_service_change = function(obj){
+  var s_game_id = obj.getAttribute('game_id');
+  var p_type = 2;
+  var loading = layer.msg('处理中...', {icon: 16,time:false});
+  admin.req({
+    url: layui.setter.api+"game-game_service_change_push"
+    ,data: {game_id:s_game_id,p_type:p_type}
+    ,done: function(data){
+      table.reload('LAY-table');
+      setTimeout(function(){
+        layer.close(loading);
+        layer.msg(data.msg, {icon: 1});
+      },500)
+    }
+  });
+}
+
+  //游戏服务器提交form
+  form.on('submit(save_service)', function(data){
+    var loading = layer.msg('处理中...', {icon: 16,time:false});
+    admin.req({
+      url: layui.setter.api+'game-config_save_service',
+      data: data.field,
+      type: 'post',
+      done: function(res){
+        setTimeout(function(){
+            layer.close(loading);
+            layer.msg(res.msg, {icon: 1},function(){
+              layer.close(service_edit);
+              table.reload('LAY-table-service');
+            })
+        },100)
+      }
+    });
+    return false;
+  });
+
+  //弹出玩法配置列表
+  window.play_click = function(num){
+    //加载数据
+    table.render({
+      elem: '#LAY-table-play'
+      ,url:layui.setter.api+'game-config_play_list'
+      ,cellMinWidth: 80
+      ,where :{
+        id:num
+      }
+      ,cols: [[
+        {field:'play_id', title:'玩法ID',unresize: false}
+        ,{field:'name', title:'玩法名称', edit:'text',unresize: false}
+        ,{field:'type_name', title:'选项',unresize: false,templet: function(d){
+          var arr = new Array('单选','多选','输入框');
+          var div = '';
+          for (var i = 1; i <= 3; i++) {
+            if(d.type == i){
+              selected = 'selected';
+            }else{
+              selected = '';
+            }
+            div += '<option value="'+i+'" '+selected+'>'+arr[i-1]+'</option>';
+          }
+          return '<select name="select_play_type" lay-filter="select_play_type" id="'+d.id+'">'+div+'</select>';
+          }}
+        ,{field:'data_text', title:'子id和对照值',unresize: false}
+        ,{field:'remark', title:'备注',unresize: false}
+        ,{field:'id',title:'操作',unresize: false,templet:function(d){
+        return '<a class="layui-btn layui-btn-xs play_set" game_id="'+num+'" play_id="'+d.id+'" onclick="play_set_edit(this)">修改</a>';
+        }}
+        
+      ]]
+      ,page: true
+      ,done:function(res, curr, count){
+        $("#play_div").find('.game_name').html('游戏名称：'+res.info.name);
+        $("#play_div").find('.game_id').html('游戏id:'+res.info.game_id);
+        //将游戏id记录
+        $("#add_play").attr('game_id',num);
+        $("#add_play").attr('play_id','');
+      }
+    }); 
+
+    // 监听配置列表选项update操作
+    form.on('select(select_play_type)', function (data) {
+        // debugger;
+        var id = data.elem.getAttribute('id');
+        var field = 'type';
+        var val = data.value;
+
+        if(val == ''){
+          layer.alert('此选项不能为空',{icon:5});return;
+        }
+
+        var loading = layer.msg('处理中...', {icon: 16,time:false});
+        admin.req({
+          url: layui.setter.api+'game-config_play_save',
+          data: {'id':id,'field':field,'value':val},
+          type: 'post',
+          done: function(res){
+            setTimeout(function(){
+                layer.close(loading);
+                layer.msg(res.msg, {icon: 1})
+            },500)             
+          }
+        }); 
+    });
+
+    play = layer.open({
+        type: 1, 
+        title: '玩法配置',
+        shadeClose: true,
+        shade: 0,
+        area: ['50%', '70%'],
+        offset:'auto',
+        content: $("#play_div"), //这里content是一个普通的String
+        cancel:function(){
+          $("input[name='game_id']").val('');
+          $("input[name='game_name']").val('');
+        }
+    });
+  }
+
+  //查看图片
+  // window.show_pic = function (dom){
+  //   var arr={
+  //    "data":[],
+  //    "start": $(dom).index(),
+  //   }
+  //   arr['data'].push({"src":dom.src})
+  //   layer.photos({
+  //     photos: arr
+  //   }); 
+  // }
+
+  var num = 0;
+  //编辑玩法配置
+  window.play_set_edit = function(obj){
+    game_id = obj.getAttribute('game_id');
+    if(obj.getAttribute('id') == 'add_play'){
+      play_id = '';
+    }else{
+      play_id = obj.getAttribute('play_id');
+    }
+    $("#add_play").attr('play_id',play_id);
+    // console.log(play_id);
+
+    if(play_id == ''){
+      // console.log(33);
+      table.render({
+        elem: '#play_type_table_top'
+        ,url:layui.setter.api+'game-config_play_type_info'
+        ,cellMinWidth: 80
+        ,cols: [[
+          {field:'title', title:'配置参数名',unresize: false}
+        ,{field:'value', title:'参数值',unresize: false,templet:function(d){
+          if(d.value == 'type'){
+            select = '<select name="type" lay-verify="required"><option value=""></option><option value="1">单选</option><option value="2">多选</option><option value="3">输入框</option></select>';
+            return select;
+          }else{
+            if(d.value == 'play_id'){
+              input = '<input type="text" name="'+d.value+'" required  lay-verify="required|number" autocomplete="off" class="layui-input">'
+            }else if(d.value == 'remark'){
+              input = '<input type="text" name="'+d.value+'" required autocomplete="off" class="layui-input">'
+            }else{
+              input = '<input type="text" name="'+d.value+'" required  lay-verify="required" autocomplete="off" class="layui-input">'
+            }
+            return input;
+          }
+        }}
+        ]]
+        ,page: false
+        ,done:function(res, curr, count){
+          // form.val('play-edit-form', {
+          //   "remark": '',
+          // })
+
+          // form.render();
+        }
+      }); 
+
+      table.render({
+        elem: '#play_type_table'
+        ,data:new Array()
+        ,cellMinWidth: 80
+        ,cols: [[
+          {field:'play_type_id', title:'子ID', edit:'text',unresize: false}
+        ,{field:'play_type_name', title:'描述',edit:'text',unresize: false}
+        ]]
+        ,page: false
+        ,done:function(res, curr, count){
+          form.val('play-edit-form', {
+            "remark": '',
+          })
+
+          form.render();
+        }
+      }); 
+
+      //新增
+
+      //点击加号按钮时，新添一行
+     window.add_tr = function(){
+      num = 0;
+      var oldData =  table.cache["play_type_table"];
+        for (var i = 0; i < oldData.length; i++) {
+          if(oldData[i]['play_type_id'] == ''){
+            oldData.splice(i,1);
+          }
+        }
+        var data1={"play_type_id":"","play_type_name":""};
+        oldData.push(data1);
+        table.reload('play_type_table',{
+            data : oldData,
+            num:null,
+
+      });
+     }
+      
+      //点击减号按钮时，删除一行
+      window.reduce_tr = function(){
+        // num++;
+        var oldData = table.cache['play_type_table'];
+        oldData.splice(oldData.length-1,1);
+        table.reload('play_type_table',{
+          data : oldData
+        });
+      }
+    }else{
+      //修改
+      //加载数据
+      // console.log(11);
+      table.render({
+        elem: '#play_type_table_top'
+        ,url:layui.setter.api+'game-config_play_type_info'
+        ,where:{
+          id:play_id
+        }
+        ,cellMinWidth: 80
+        ,cols: [[
+          {field:'title', title:'配置参数名',unresize: false}
+        ,{field:'value', title:'参数值',unresize: false,templet:function(d){
+          if(d.value.param == 'type'){
+            selected1 = '';
+            selected2 = '';
+            selected3 = '';
+            if(d.value.value == 1){
+              selected1 = 'selected';
+            }else if(d.value.value == 2){
+              selected2 = 'selected';
+            }else{
+              selected3 = 'selected';
+            }
+            select = '<select name="type" lay-verify="required"><option value=""></option><option value="1" '+selected1+'>单选</option><option value="2" '+selected2+'>多选</option><option value="3" '+selected3+'>输入框</option></select>';
+            return select;
+          }else{
+            if(d.value.param == 'play_id'){
+              input = '<input type="text" name="'+d.value.param+'" required value="'+d.value.value+'" lay-verify="required|number" autocomplete="off" class="layui-input">'
+            }else if(d.value.param == 'remark'){
+              input = '<input type="text" name="'+d.value.param+'" required value="'+d.value.value+'" autocomplete="off" class="layui-input">'
+            }else{
+              input = '<input type="text" name="'+d.value.param+'" required  value="'+d.value.value+'" lay-verify="required" autocomplete="off" class="layui-input">'
+            }
+            return input;
+          }
+        }}
+        ]]
+        ,page: false
+        ,done:function(res, curr, count){
+          // form.val('play-edit-form', {
+          //   "remark": '',
+          // })
+
+          // form.render();
+        }
+      }); 
+
+      table.render({
+        elem: '#play_type_table'
+        ,url:layui.setter.api+'game-config_play_type_list'
+        ,where:{
+          id:play_id
+        }
+        ,cellMinWidth: 80
+        ,cols: [[
+          {field:'play_type_id', title:'子ID', edit:'text',unresize: false}
+        ,{field:'play_type_name', title:'描述',edit:'text',unresize: false}
+        ]]
+        ,page: false
+        ,done:function(res, curr, count){
+          // console.log(res.remark);
+          //表单初始赋值
+
+          form.val('play-edit-form', {
+            "remark": res.remark,
+          })
+
+          form.render();
+        }
+      }); 
+
+      //点击加号按钮时，新添一行
+     window.add_tr = function(){
+      num = 0;
+      var oldData =  table.cache["play_type_table"];
+        console.log(oldData);
+        for (var i = 0; i < oldData.length; i++) {
+          if(oldData[i]['play_type_id'] == ''){
+            oldData.splice(i,1);
+          }
+        }
+        var data1={"play_type_id":"","play_type_name":""};
+        oldData.push(data1);
+        table.reload('play_type_table',{
+          where:{
+            again:1,
+            data:oldData,
+            id:play_id,
+            num:null
+          }
+      });
+     }
+
+     //点击减号按钮时，删除一行
+      window.reduce_tr = function(){
+        num++;
+        table.reload('play_type_table',{
+          where:{
+            num:num
+          },
+          // data : oldData
+        });
+      }
+    }
+    
+
+
+    //弹出modal
+    play = layer.open({
+        type: 1, 
+        title: '玩法类别',
+        shadeClose: true,
+        shade: 0,
+        area: ['35%', '50%'],
+        offset:'auto',
+        content: $("#play_type_div"), //这里content是一个普通的String
+        cancel:function(){
+          // delete table.cache["play_type_table"];
+        }
+    });
+
+    $("#cancel_play").click(function(){
+      layer.close(play);
+    })
+  }
+
+  
+
+  //监听玩法类别提交
+  //表单提交
+  form.on('submit(save_play_type)', function(data){
+    flag = 0;
+    var loading = layer.msg('处理中...', {icon: 16,time:false});
+    //获取数据
+    var play_type_arr = [];//类别数据
+    var repeat_id = [];
+    $("#play_type_div").find('tbody').eq(1).find('tr').each(function(){
+      arr = {};
+      arr.play_type_id = $(this).find('td[data-field="play_type_id"]').find('div').html();
+      arr.play_type_name = $(this).find('td[data-field="play_type_name"]').find('div').html();
+
+      if($.inArray(arr.play_type_id,repeat_id) > -1){
+        flag = 1;
+        layer.alert('子ID不能重复',{icon:5});return false;
+      }
+      repeat_id.push(arr.play_type_id);
+      if(arr.play_type_id == ''){
+        flag = 1;
+        layer.alert('子ID不能为空',{icon:5});return false;
+      }
+      if(arr.play_type_name == ''){
+        flag = 1;
+        layer.alert('描述不能为空',{icon:5});return false;
+      }
+      play_type_arr.push(arr);
+    });
+    
+    if(flag == 1){
+      return false;
+    }
+
+    if(play_type_arr.length < 1){
+      flag = 1;
+      layer.alert('子ID和描述不能为空',{icon:5});return false;
+    }
+
+    if(flag == 1){
+      return false;
+    }
+
+    var game_id = $("#add_play").attr('game_id');
+    var play_id = $("#add_play").attr('play_id');
+    // var remark = $("#play_type_div").find('input[name="remark"]').val();
+    // console.log(data.field);return false;
+    data.field.play_type_arr = play_type_arr;
+    data.field.game_id = game_id;
+    data.field.id = play_id;
+    admin.req({
+      url: layui.setter.api+'game-config_play_type_save',
+      data: data.field,
+      type: 'post',
+      done: function(res){
+        setTimeout(function(){
+            layer.close(loading);
+            layer.msg(res.msg, {icon: 1},function(){
+              layer.close(play);
+              table.reload('LAY-table-play');
+            })
+        },500)
+      }
+    });
+    return false;
+  });
+
+  //查看图片
+  // window.show_pic = function (dom){
+  //   var arr={
+  //    "data":[],
+  //    "start": $(dom).index(),
+  //   }
+  //   arr['data'].push({"src":dom.src})
+  //   layer.photos({
+  //     photos: arr
+  //   }); 
+  // }
+
+  //监听单元格编辑
+  table.on('edit(LAY-table)', function(obj){
+      var loading = layer.msg('处理中...', {icon: 16,time:false});
+      admin.req({
+        url: layui.setter.api+'game-config_save',
+        data: {'id':obj.data.id,'field':obj.field,'value':obj.value},
+        type: 'post',
+        done: function(res){
+          setTimeout(function(){
+              layer.close(loading);
+              layer.msg(res.msg, {icon: 1})
+          },500)             
+        }
+      });            
+  });  
+
+  //监听单元格编辑(玩法)
+  table.on('edit(LAY-table-play)', function(obj){
+      var loading = layer.msg('处理中...', {icon: 16,time:false});
+      admin.req({
+        url: layui.setter.api+'game-config_play_save',
+        data: {'id':obj.data.id,'field':obj.field,'value':obj.value},
+        type: 'post',
+        done: function(res){
+          setTimeout(function(){
+              layer.close(loading);
+              layer.msg(res.msg, {icon: 1})
+          },500)             
+        }
+      });            
+  });  
+
+  //自定义验证
+  form.verify({
+    game_id: function(value, item){ //value：表单的值、item：表单的DOM对象
+      if(!/^\d+$/.test(value)){
+        return '游戏id只能为数字组成';
+      }
+    }
+    ,required:function(value,item){
+      if(value == ''){
+        return '此项不能为空';
+      }
+    }
+
+  });  
+  //表单提交
+  form.on('submit(add_game)', function(data){
+    var loading = layer.msg('处理中...', {icon: 16,time:false});
+    admin.req({
+      url: layui.setter.api+'game-config_add',
+      data: data.field,
+      type: 'post',
+      done: function(res){
+        setTimeout(function(){
+          layer.close(loading);
+          layer.msg(res.msg, {icon: 1},function(){
+            layer.close(index);
+            table.reload('LAY-table');
+            form.val('lay-game-add', {
+              "game_id":'',
+              "game_name":'',
+            });
+            form.render();
+          })
+        },500)
+      }
+    });
+    return false;
+  });
+
+
+});
+
+</script>

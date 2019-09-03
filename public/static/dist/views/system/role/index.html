@@ -1,0 +1,347 @@
+<title>菜单管理</title>
+
+<div class="layui-card layadmin-header">
+  <div class="layui-breadcrumb" lay-filter="breadcrumb">
+    <a>系统管理</a>
+    <a>权限管理</a>
+  </div>
+</div>
+<div class="layui-fluid">
+    <div class="layui-row layui-col-space15">
+        <div class="layui-col-md12">
+            <div class="layui-card">
+
+              <div class="layui-form layui-card-header layuiadmin-card-header-auto" lay-filter="app-content-list">
+                <div class="layui-form-item">
+
+                    <div class="layui-inline" style="float:right">
+                      <button  onclick="add_group()" class="layui-btn layuiadmin-btn-list" ><i class="layui-icon layui-icon-add-1 layuiadmin-button-btn"></i>新增角色</button>
+                    </div>   
+                    <div class="layui-inline" style="float:right">
+                        <button onclick="edit_group()" class="layui-btn layuiadmin-btn-list" >编辑角色</button>
+                    </div>           
+                    
+                </div>
+              </div>
+
+            </div>
+        </div>
+        <div class="layui-col-md12">
+          <div class="layui-card">
+            <div class="layui-card-body">
+
+            <!-- 此扩展能递归渲染一个权限树，点击深层次节点，父级节点中没有被选中的节点会被自动选中，单独点击父节点，子节点会全部 选中/去选中 -->
+            <form class="layui-form">
+                <div class="layui-form-item">
+                    <label class="layui-form-label">角色名称</label>
+                    <div class="layui-input-inline">
+                        <select name="name" lay-verify="required" lay-filter="role" id="role">
+                          
+                        </select>                        
+                    </div>
+
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label">选择权限</label>
+                    <div class="layui-input-block">
+                        <div id="LAY-auth-tree-index"></div>
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <div class="layui-input-block">
+                        <button class="layui-btn" id="save" type="submit" lay-submit lay-filter="LAY-auth-tree-submit">保存</button>
+                    </div>
+                </div>
+            </form>
+              
+              
+            </div>
+          </div>
+        </div>        
+    </div>
+</div>
+
+<div class="layui-fluid" style="display:none" id="group_div">
+  <div class="layui-row layui-col-space15">
+    <div class="layui-col-md12">
+      <div class="layui-card">
+        <div class="layui-card-body" pad15>
+          
+          <div class="layui-form" lay-filter="group-form">
+            <div class="layui-form-item">
+              <label class="layui-form-label">角色名称</label>
+              <div class="layui-input-inline">
+                <input type="text" name="group_name" placeholder="请输入角色名称" lay-verify="required" class="layui-input">
+              </div>
+            </div>
+            <div class="layui-form-item">
+              <div class="layui-input-block">
+                <input type="hidden" name="id" value=''>
+                <button class="layui-btn" lay-submit lay-filter="save_group" id="save_group">确定</button>
+                <button class="layui-btn layui-btn-primary" id="cancel">取消</button>
+              </div>
+            </div>
+          </div>
+          
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script type="text/javascript">
+layui.use(['admin', 'authtree', 'form'], function(){
+    var $ = layui.$
+    ,admin = layui.admin
+    ,authtree = layui.authtree
+    ,form = layui.form;
+
+    window.add_group = function(){
+        group = layer.open({
+            type: 1, 
+            title: '新增角色',
+            shadeClose: true,
+            shade: 0,
+            area: ['22%', '25%'],
+            offset:'auto',
+            content: $("#group_div"), //这里content是一个普通的String
+            cancel:function(){
+              form.val('group-form',{
+                'group_name':'',
+                'id':''
+              });
+              form.render();
+            }
+        });
+    }
+
+    window.edit_group = function(){
+        val = $("[name='name']").val();
+
+        admin.req({
+            url: layui.setter.api+'common-group_get_info',
+            data: {group_id:val},
+            type: 'post',
+            async:false, 
+            done: function(data){
+              
+              form.val('group-form',{
+                'group_name':data.data.name,
+                'id':data.data.id
+              });
+
+              if(val == 1){
+                $("#save_group").hide();
+              }
+
+              form.render();
+            }
+        });  
+
+        group = layer.open({
+            type: 1, 
+            title: '编辑角色',
+            shadeClose: true,
+            shade: 0,
+            area: ['22%', '25%'],
+            offset:'auto',
+            content: $("#group_div"), //这里content是一个普通的String
+            cancel:function(){
+              form.val('group-form',{
+                'group_name':'',
+                'id':''
+              });
+            $("#save_group").show();
+
+              form.render();
+            }
+        });
+    }
+
+    $("#cancel").click(function(){
+        form.val('group-form',{
+            'group_name':'',
+            'id':''
+          });
+        $("#save_group").show();
+
+          form.render();
+        layer.close(group);
+    })
+
+    form.on('submit(save_group)', function(data){
+        var loading = layer.msg('处理中...', {icon: 16,time:false});
+        admin.req({
+          url: layui.setter.api+'common-group_add',
+          data: data.field,
+          type: 'post',
+          done: function(res){
+            setTimeout(function(){
+                layer.close(loading);
+                layer.msg(res.msg, {icon: 1},function(){
+                
+                  layer.close(group);
+                })
+                val = $("[name='name']").val();
+                get_group(val);
+
+                form.val('group-form',{
+                    'group_name':'',
+                    'id':''
+                  });
+                $("#save_group").show();
+
+                form.render();
+            },500)
+          }
+        });
+        return false;
+    });
+
+    function get_group(id=''){
+        //获取编辑数据
+          admin.req({
+            url: layui.setter.api+'common-group_get',
+            data: {},
+            type: 'post',
+            async:false, 
+            done: function(data){
+              var res = data.data;
+              $("#role").html('');
+              var div = '';
+
+              if(id == ''){
+                $.each(res,function(index,val){
+                    div += '<option value="'+val.id+'">'+val.name+'</option>';
+                })
+              }else{
+                $.each(res,function(index,val){
+                    if(val.id == id){
+                        div += '<option value="'+val.id+'" selected>'+val.name+'</option>';
+                    }else{
+                        div += '<option value="'+val.id+'">'+val.name+'</option>';
+                    }
+                })
+              }
+              
+              $("#role").append(div);
+
+              form.render();
+            }
+          });  
+    }
+
+    get_group();
+    
+    // 初始化
+    function roleInitialization(user_type){
+        admin.req({
+            type:'post',
+            url: layui.setter.api+'common-role',
+            data:{'user_type':user_type},
+            dataType: 'json',
+            success: function(data){
+                // 渲染时传入渲染目标ID，树形结构数据（具体结构看样例，checked表示默认选中），以及input表单的名字
+                authtree.render('#LAY-auth-tree-index', data.data.trees, {
+                    inputname: 'ids[]'
+                    ,layfilter: 'lay-check-auth'
+                    // ,dblshow: true
+                    // ,dbltimeout: 180
+                    // ,autoclose: false
+                    // ,autochecked: false
+                    // ,openchecked: true
+                    // ,openall: true
+                    // ,hidechoose: true
+                    // ,checkType: 'radio'
+                    // ,checkSkin: 'primary'
+                    ,autowidth: true
+                });
+
+                // PS:使用 form.on() 会引起了事件冒泡延迟的BUG，需要 setTimeout()，并且无法监听全选/全不选
+                // PS:如果开启双击展开配置，form.on()会记录两次点击事件，authtree.on()不会
+    /*          form.on('checkbox(lay-check-auth)', function(data){
+                    // 注意这里：需要等待事件冒泡完成，不然获取叶子节点不准确。
+                    setTimeout(function(){
+                        console.log('监听 form 触发事件数据', data);
+                        // 获取选中的叶子节点
+                        var leaf = authtree.getLeaf('#LAY-auth-tree-index');
+                        console.log('leaf', leaf);
+                        // 获取最新选中
+                        var lastChecked = authtree.getLastChecked('#LAY-auth-tree-index');
+                        console.log('lastChecked', lastChecked);
+                        // 获取最新取消
+                        var lastNotChecked = authtree.getLastNotChecked('#LAY-auth-tree-index');
+                        console.log('lastNotChecked', lastNotChecked);
+                    }, 100);
+                });
+    */          // 使用 authtree.on() 不会有冒泡延迟
+                // authtree.on('change(lay-check-auth)', function(data) {
+                //     $('#save').removeClass('layui-btn-disabled');
+                //     $('#save').removeAttr('disabled');
+                    
+                    // console.log('监听 authtree 触发事件数据', data);
+                    // // 获取所有节点
+                    // var all = authtree.getAll('#LAY-auth-tree-index');
+                    // // 获取所有已选中节点
+                    // var checked = authtree.getChecked('#LAY-auth-tree-index');
+                    // // 获取所有未选中节点
+                    // var notchecked = authtree.getNotChecked('#LAY-auth-tree-index');
+                    // // 获取选中的叶子节点
+                    // var leaf = authtree.getLeaf('#LAY-auth-tree-index');
+                    // // 获取最新选中
+                    // var lastChecked = authtree.getLastChecked('#LAY-auth-tree-index');
+                    // // 获取最新取消
+                    // var lastNotChecked = authtree.getLastNotChecked('#LAY-auth-tree-index');
+                    // console.log(
+                    //     'all', all,"\n",
+                    //     'checked', checked,"\n",
+                    //     'notchecked', notchecked,"\n",
+                    //     'leaf', leaf,"\n",
+                    //     'lastChecked', lastChecked,"\n",
+                    //     'lastNotChecked', lastNotChecked,"\n"
+                    // );
+                // });
+                // authtree.on('deptChange(lay-check-auth)', function(data) {
+                //     console.log('监听到显示层数改变',data);
+                // });
+                // authtree.on('dblclick(lay-check-auth)', function(data) {
+                //     console.log('监听到双击事件',data);
+                // });
+            },
+            error: function(xml, errstr, err) {
+                layer.alert(errstr+'，获取样例数据失败，请检查是否部署在本地服务器中！');
+            }
+        });        
+    }
+    roleInitialization(1);
+    //角色选择
+    form.on('select(role)', function(data){
+        user_type = data.value;
+        // if(user_type == 1){
+        //     $('#save').addClass('layui-btn-disabled');
+        //     $('#save').attr('disabled',true);            
+        // }
+        roleInitialization(data.value);
+        return false;
+    });     
+    // 表单提交样例
+    form.on('submit(LAY-auth-tree-submit)', function(obj){
+        var authids = authtree.getChecked('#LAY-auth-tree-index');
+        // console.log(authids)
+        var loading = layer.msg('处理中...', {icon: 16,time:false});
+        admin.req({
+            type:'post',
+            url: layui.setter.api+'common-role_save',
+            data:{'checkedID':authids,'user_type':obj.field.name},
+            dataType: 'json',
+            success: function(res){
+                setTimeout(function(){
+                    layer.close(loading);
+                    layer.msg(res.msg, {icon: 1});
+                },500)
+            }
+        });
+        return false;
+    });
+});
+</script>

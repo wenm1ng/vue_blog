@@ -1,0 +1,134 @@
+<title>房间管理</title>
+
+<div class="layui-card layadmin-header">
+    <div class="layui-breadcrumb" lay-filter="breadcrumb">
+        <a>线上运营</a>
+        <a>房间管理</a>
+    </div>
+</div>
+
+<div class="layui-fluid">
+    <div class="layui-row layui-col-space15">
+        
+        <div class="layui-col-md12">
+            <div class="layui-card">
+                <div class="layui-form layui-card-header layuiadmin-card-header-auto" lay-filter="app-content-list">
+                    <div class="layui-form-item">
+                        <div class="layui-input-inline">
+                            <input type="text" name="room_id" placeholder="房间ID" autocomplete="off" class="layui-input">
+                        </div>
+                        <div class="layui-input-inline">
+                            <input type="text" name="user_id" placeholder="用户ID" autocomplete="off" class="layui-input">
+                        </div>
+                        <div class="layui-input-inline">
+                            <input type="text" name="game_name" placeholder="游戏名称" autocomplete="off" class="layui-input">
+                        </div>
+                        <div class="layui-input-inline" style="width: 350px">
+                            <input type="text" class="layui-input" id="end_time" name="end_time" placeholder="对局结束时间">
+                        </div>
+                        <div class="layui-input-inline">
+                            <button class="layui-btn layuiadmin-btn-list" lay-submit="" lay-filter="LAY-search">
+                                <i class="layui-icon layui-icon-search layuiadmin-button-btn"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="layui-col-md12">
+            <div class="layui-card">
+                <div class="layui-card-body">
+                    <table class="layui-hide" id="LAY-table-room" lay-filter="LAY-table-room"></table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    layui.use(['admin', 'table', 'form', 'laydate',], function(){
+        var $ = layui.$
+        ,admin = layui.admin
+        ,table = layui.table
+        ,laydate = layui.laydate
+        ,form = layui.form
+        ,router = layui.router();
+
+        form.render();
+
+        // 日期时间范围
+        laydate.render({
+            elem: '#end_time'
+            ,type: 'datetime'
+            ,range: true
+        });
+
+        // 监听搜索
+        form.on('submit(LAY-search)', function(data){
+
+            table.reload('LAY-table-room', {
+                where:{
+                    room_id:data.field.room_id,
+                    end_time:data.field.end_time,
+                    user_id:data.field.user_id,
+                    game_name:data.field.game_name,
+                }
+                ,page: {
+                    curr: 1 //重新从第 1 页开始
+                }
+                ,done:function(){
+                    form.render();
+                }
+            });
+        });
+
+        table.render({
+            elem: '#LAY-table-room'
+            ,url:layui.setter.api+'operate-room_list'
+            ,cellMinWidth: 80
+            ,cols: [[
+                {field:'room_id',title:'房间ID',unresize: false}
+                ,{field:'game_id',title:'游戏ID',unresize: false}
+                ,{field:'name',title:'游戏名称',unresize: false}
+                ,{field:'venue_id',title:'场次ID',unresize: false}
+                ,{field:'venue_name',title:'场次名称',unresize: false}
+                ,{field:'service_id',title:'服务器id',unresize: false}
+                ,{field:'play_uid',title:'对局内玩家ID',unresize: false}
+                ,{field:'robot_uid',title:'对局内机器人ID',unresize: false}
+                ,{field:'now_num',title:'当前游戏人数',unresize: false}
+                ,{field:'limit_num',title:'限制人数',unresize: false}
+                ,{field:'status_name',title:'当前状态',unresize: false}
+                ,{field:'begin_time',title:'开始时间',width:180,unresize: false}
+                ,{field:'end_time',title:'结束时间',width:180,unresize: false}
+                ,{field:'create_time',title:'入库时间',width:180,unresize: false}
+                ,{title:'操作',unresize: false,templet:function(d){
+                    if(d.status < 3){
+                        return '<a class="layui-btn layui-btn-xs" onclick="edit_status('+d.id+')">解散</a>';
+                    }else{
+                        return '';
+                    }
+                }}
+            ]]
+            ,page: true
+            ,done:function(res, curr, count){
+            }
+        });
+
+        // 解散房间
+        window.edit_status = function(id){
+            var loading = layer.msg('处理中...', {icon: 16,time:false});
+            admin.req({
+                url: layui.setter.api+"operate-room_close"
+                ,data: {id:id}
+                ,done: function(data){
+                    setTimeout(function(){
+                        layer.close(loading);
+                        layer.msg(data.msg, {icon: 1});
+                        layer.close(index); //执行关闭
+                    },500)
+                }
+            });
+        };
+    })
+</script>

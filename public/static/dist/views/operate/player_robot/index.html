@@ -1,0 +1,214 @@
+<title>游戏机器人</title>
+
+<style type="text/css">
+    .layui-table img {
+        max-width: 100%;
+        max-height: 50px;
+    }
+</style>
+
+<div class="layui-card layadmin-header">
+    <div class="layui-breadcrumb" lay-filter="breadcrumb">
+        <a>线上运营</a>
+        <a>游戏机器人</a>
+    </div>
+</div>
+
+<div class="layui-fluid">
+    
+    <div class="layui-row layui-col-space15">
+        
+        <div class="layui-col-md12">
+            <div class="layui-card">
+
+                <div class="layui-form layui-card-header layuiadmin-card-header-auto" lay-filter="app-content-list">
+                    <div class="layui-form-item">
+                        <div class="layui-input-inline">
+                            <input type="text" name="id_name" placeholder="游戏名/游戏ID" autocomplete="off" class="layui-input">
+                        </div>
+
+                        <div class="layui-input-inline">
+                            <button class="layui-btn layuiadmin-btn-list" lay-submit="" lay-filter="LAY-robot_list-search">
+                                <i class="layui-icon layui-icon-search layuiadmin-button-btn"></i>
+                            </button>
+                        </div>
+                        
+                        <!-- <div class="layui-inline" style="float: right;">
+                            <button id="import_excel" class="layui-btn layuiadmin-btn-list"><i class="layui-icon layui-icon-add-1 layuiadmin-button-btn"></i>导入机器人</button>
+                        </div> -->
+
+                        <div class="layui-inline" style="float: right;">
+                            <button id="create" class="layui-btn layuiadmin-btn-list"><i class="layui-icon layui-icon-add-1 layuiadmin-button-btn"></i>生成机器人</button>
+                        </div>
+
+                        <div class="layui-inline" style="float: right;">
+                            <button id="add" class="layui-btn layuiadmin-btn-list"><i class="layui-icon layui-icon-add-1 layuiadmin-button-btn"></i>分配机器人</button>
+                        </div>
+
+                        <div class="layui-inline" style="float: right;">
+                            <button id="sync_redis" class="layui-btn layuiadmin-btn-list"><i class="layui-icon layui-icon-sync_redis-1 layuiadmin-button-btn"></i>生效</button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="layui-col-md12">
+            <div class="layui-card">
+                <div class="layui-card-body">
+                    <table class="layui-hide" id="LAY-robot_list-index-table" lay-filter="LAY-robot_list-table"></table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+
+    layui.use(['admin', 'table', 'form', 'view' , 'upload'], function(){
+        var $ = layui.$
+        ,admin = layui.admin
+        ,table = layui.table
+        ,view = layui.view
+        ,upload = layui.upload
+        ,form = layui.form;
+
+        var laysearch = layui.data(layui.setter.tableName);
+        form.render();
+
+        // //excel导入
+        // upload.render({
+        //     elem:'#import_excel' //绑定元素
+        //     ,acceptMime: 'application/vnd.ms-excel'
+        //     ,url: layui.setter.api+'operate-robot_import_excel'+'?access_token='+layui.data(layui.setter.tableName)['access_token']
+        //     ,exts:'xls|xlsx'
+        //     ,auto: true //选择文件后自动上传
+        //     ,before:function(){
+        //       upload_loading = layer.msg('上传中...', {icon: 16,time:false});
+        //     }
+        //     ,done: function(res){ //上传后的回调
+        //       layer.close(upload_loading);
+        //       layer.alert(res.msg, {icon: 6});
+        //       table.reload('LAY-robot_list-index-table');
+        //     }
+        // });
+
+        table.render({
+            elem: '#LAY-robot_list-index-table'
+            ,url:layui.setter.api+'operate-robot_list'
+            ,cellMinWidth: 80
+            ,cols: [[
+                {field:'uid',title:'机器人id',unresize: true}
+                ,{field:'game_id',title:'游戏ID',unresize: true}
+                ,{field:'name',title:'游戏昵称',unresize: true}
+            ]]      
+            ,page: true
+            ,done:function(res, curr, count){}
+        });
+
+        // 监听搜索
+        form.on('submit(LAY-robot_list-search)',function(data){
+            layui.data(layui.setter.tableName,{
+                key:'robot_list'
+                ,value:data.field
+            });
+            table.reload('LAY-robot_list-index-table', {
+                where:{
+                    id_name: data.field.id_name,
+                }
+                ,page: {
+                    curr: 1 //重新从第 1 页开始
+                }
+                ,done:function(){
+                    form.render();
+                }
+            });
+        });
+
+        // 分配机器人
+        $("#add").click(function(){
+
+            admin.popup({
+                title: '分配机器人'
+                ,area: ['500px', '400px']
+                ,id: 'LAY-robot_list-add'
+                ,success: function(layero, index){
+                    view(this.id).render('operate/player_robot/add').done(function(){
+                        form.render(null, 'layuiadmin-form-add');
+                        // 监听提交
+                        form.on('submit(LAY-user-back-submit)', function(data){
+                            var field = data.field; //获取提交的字段
+                            console.log(field);
+                            //提交 Ajax 成功后，关闭当前弹层并重载表格
+                            var loading = layer.msg('处理中...', {icon: 16,time:false});
+                            admin.req({
+                                url: layui.setter.api+"operate-robot_add"
+                                ,data: field
+                                ,done: function(data){
+                                    setTimeout(function(){
+                                        layer.close(loading);
+                                        layer.msg(data.msg, {icon: 1});
+                                        layui.table.reload('LAY-robot_list-index-table'); //重载表格
+                                        layer.close(index); //执行关闭
+                                    },500)
+                                }
+                            });
+                        });
+                    });
+                }
+            });
+        });
+
+        // 生成机器人
+        $("#create").click(function(){
+
+            admin.popup({
+                title: '生成机器人'
+                ,area: ['500px', '400px']
+                ,id: 'LAY-robot_list-create'
+                ,success: function(layero, index){
+                    view(this.id).render('operate/player_robot/create').done(function(){
+                        form.render(null, 'layuiadmin-form-create');
+                        // 监听提交
+                        form.on('submit(LAY-user-back-submit)', function(data){
+                            var field = data.field; //获取提交的字段
+                            console.log(field);
+                            //提交 Ajax 成功后，关闭当前弹层并重载表格
+                            var loading = layer.msg('处理中...', {icon: 16,time:false});
+                            admin.req({
+                                url: layui.setter.api+"operate-robot_create"
+                                ,data: field
+                                ,done: function(data){
+                                    setTimeout(function(){
+                                        layer.close(loading);
+                                        layer.msg(data.msg, {icon: 1});
+                                        layui.table.reload('LAY-robot_list-index-table'); //重载表格
+                                        layer.close(index); //执行关闭
+                                    },500)
+                                }
+                            });
+                        });
+                    });
+                }
+            });
+        });
+
+        // 生效
+        $("#sync_redis").click(function(){
+
+            var loading = layer.msg('处理中...', {icon: 16,time:false});
+            admin.req({
+                url: layui.setter.api+"operate-robot_sync_redis"
+                ,done: function(data){
+                    setTimeout(function(){
+                        layer.close(loading);
+                        layer.msg(data.msg, {icon: 1});
+                        layer.close(index); //执行关闭
+                    },500)
+                }
+            });
+        });
+    });
+</script>

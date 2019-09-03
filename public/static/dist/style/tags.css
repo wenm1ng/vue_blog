@@ -1,0 +1,8 @@
+    .filter_select .container { width: 95%; margin: 0 auto;height: 30% }
+    .clearfix:after { content: " "; display: block; clear: both; }
+    .filter_select { padding-top: 15px; padding-bottom: 15px;  }
+    .filter_select .box { padding: 24px; border: 1px solid #dcdcdc; background-color: #fff }
+    .filter_select dl { position: relative; margin-bottom: 10px;margin-top: 10px; }
+    .filter_select dl:after { content: ""; display: block; clear: both }
+    .filter_select dl dt {     position: absolute;top: 0;left: 0;font-weight: 700;font-size: 14px;line-height: 38px;}
+    .filter_select dl dd { padding-left: 60px }

@@ -1,0 +1,378 @@
+
+<title>游戏配置</title>
+<style>
+/* 防止下拉框的下拉列表被隐藏---必须设置--- */
+.layui-table-cell {
+  height: auto;
+            /*空白会被浏览器忽略*/
+  white-space: normal;
+            /*允许长单词换行到下一行*/
+  word-wrap: break-word;
+            /*允许在单词内换行*/
+  word-break: break-all;
+  overflow: visible;
+  min-height: 28px;
+}
+
+.layui-table-box {
+    overflow: visible;
+}
+
+.layui-table-body {
+    overflow: visible;
+}
+/* 设置下拉框的高度与表格单元相同 */
+td .layui-form-select{
+  margin-top: -10px;
+  margin-left: -15px;
+  margin-right: -15px;
+}
+
+
+.play_type_table>.layui-form{
+  height: auto;
+}
+
+#add_service_div .layui-form-label{
+  width: 140px;
+}
+
+/* #add_service_div .layui-input-block{
+  width: 100px;
+} */
+</style>
+<div class="layui-card layadmin-header">
+  <div class="layui-breadcrumb" lay-filter="breadcrumb">
+    <a>游戏管理</a>
+    <a>游戏分类</a>
+  </div>
+</div>
+<div class="layui-fluid">
+  <div class="layui-row layui-col-space15">
+    <div class="layui-col-md12">
+      <div class="layui-card">
+
+        <div class="layui-form layui-card-header layuiadmin-card-header-auto">
+          <div class="layui-form-item">           
+              <div class="layui-inline" style="float: right;">         
+                <button onclick="add_type()" class="layui-btn layuiadmin-btn-list"><i class="layui-icon layui-icon-add-1 layuiadmin-button-btn"></i>新建分类</button>
+              </div>
+              <div class="layui-inline" style="float: right;">
+                <button id="game_type_sync_redis" class="layui-btn layuiadmin-btn-list"><i class="layui-icon layui-icon-game_type_sync_redis-1 layuiadmin-button-btn"></i>生效</button>
+              </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="layui-col-md12">
+      <div class="layui-card">
+        <div class="layui-card-body">
+            <table class="layui-hide" id="LAY-type-table" lay-filter="LAY-type-table"></table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!--新增modal-->
+<div class="layui-fluid" id="add_div" style="display:none">
+  <div class="layui-row layui-col-space15">
+    <div class="layui-col-md12">
+      <div class="layui-card">
+        <div class="layui-card-body" pad15>
+          
+          <div class="layui-form" lay-filter="type-form">
+            <div class="layui-form-item">
+              <label class="layui-form-label">分类id</label>
+              <div class="layui-input-inline">
+                <input type="text" name="type_id" placeholder="请输入分类id" lay-verify="require|type_id" class="layui-input">
+              </div>
+            </div>
+            <div class="layui-form-item">
+              <label class="layui-form-label">游戏名称</label>
+              <div class="layui-input-inline">
+                <input type="text" name="type_name" autocomplete="off" placeholder="请输入分类名称" class="layui-input" lay-verify="require">
+              </div>
+            </div>
+            <div class="layui-form-item">
+              <label class="layui-form-label">分类图标</label>
+              <div style="display: -webkit-inline-box;cursor:pointer" title="分类图标">
+                <img style="height: 100px;margin-right: 5px;" src="" onclick="show_pic(this)" style="display:none" id="type_img">
+                <input type="hidden" name="icon" value="">
+                <input type="hidden" name="id" value="">
+                <a class="layui-btn " id="upload_type_img" >上传</a>
+              </div>
+              <!-- <button class="layui-btn" lay-filter="add_game">立即添加</button> -->
+            </div>
+            
+
+            <div class="layui-form-item">
+              <div class="layui-input-block">
+                <button class="layui-btn" lay-submit lay-filter="save_type">提交</button>
+                <button class="layui-btn layui-btn-primary" id="cancel">取消</button>
+              </div>
+            </div>
+          </div>
+          
+        </div>
+      </div>
+    </div>
+  </div>
+</div> 
+
+<script>
+  layui.use(['admin', 'table', 'form', 'upload'], function(){
+  var $ = layui.$
+  ,admin = layui.admin
+  ,table = layui.table
+  ,upload = layui.upload
+  ,form = layui.form
+  ,router = layui.router();
+  form.render();
+
+  //自定义验证
+  form.verify({
+    type_id: function(value, item){ //value：表单的值、item：表单的DOM对象
+      if(!/^\d+$/.test(value)){
+        return '分类id只能为数字组成';
+      }
+    }
+    ,require:function(value,item){
+      if(value == ''){
+        return '此项不能为空';
+      }
+    }
+
+  });  
+
+  //查看图片
+  window.show_pic = function (dom){
+    var arr={
+     "data":[],
+     "start": $(dom).index(),
+    }
+    arr['data'].push({"src":dom.src})
+    layer.photos({
+      photos: arr
+    }); 
+  }
+
+  window.add_type = function(type_id = ''){
+    // console.log(type_id);
+    if(type_id == ''){
+      //新增
+      index = layer.open({
+        type: 1, 
+        title: '新增分类',
+        shadeClose: true,
+        shade: 0,
+        area: ['30%', '40%'],
+        offset:'auto',
+        content: $("#add_div"), //这里content是一个普通的String
+        cancel:function(){
+          $("#type_img").attr('src','');
+          $("#type_img").hide();
+          $("[name='type_id']").prop('disabled',false);
+
+          form.val('type-form', {
+            "type_id":'',
+            "type_name":'',
+            "icon":'',
+          })
+
+          form.render();
+        }
+      });
+    }else{
+      admin.req({
+        url: layui.setter.api+'game-type_get',
+        data: {'id':type_id},
+        type: 'post',
+        async:false, 
+        done: function(data){
+          var res = data.data.data;
+          $("#type_img").attr('src',res.icon);
+          $("#type_img").show();
+          $("[name='type_id']").prop('disabled',true);
+          //表单初始赋值
+          form.val('type-form', {
+            "type_id":res.type_id,
+            "type_name":res.name,
+            "icon":res.icon,
+            "id":res.id
+          })
+
+          form.render();
+        }
+      });  
+
+      //编辑分类
+      index = layer.open({
+        type: 1, 
+        title: '编辑分类',
+        shadeClose: true,
+        shade: 0,
+        area: ['30%', '40%'],
+        offset:'auto',
+        content: $("#add_div"), //这里content是一个普通的String
+        cancel:function(){
+          $("#type_img").attr('src','');
+          $("#type_img").hide();
+          $("[name='type_id']").prop('disabled',false);
+          form.val('type-form', {
+            "type_id":'',
+            "type_name":'',
+            "icon":'',
+          })
+
+          form.render();
+        }
+      })
+    }  
+  }
+
+  $("#cancel").click(function(){
+    layer.close(index);
+    $("#type_img").attr('src','');
+    $("#type_img").hide();
+    $("[name='type_id']").prop('disabled',false);
+    form.val('type-form', {
+      "type_id":'',
+      "type_name":'',
+      "icon":'',
+    })
+
+    form.render();
+  })
+
+  //提交
+  form.on('submit(save_type)', function(data){
+    var loading = layer.msg('处理中...', {icon: 16,time:false});
+    admin.req({
+      url: layui.setter.api+'game-type_save',
+      data: data.field,
+      type: 'post',
+      done: function(res){
+        setTimeout(function(){
+            layer.close(loading);
+            layer.msg(res.msg, {icon: 1},function(){
+              layer.close(index);
+              table.reload('LAY-type-table');
+            })
+        },500)
+      }
+    });
+    return false;
+  });
+
+  upload.render({
+    elem:'#upload_type_img' //绑定元素
+    ,acceptMime: 'image/jpg, image/png, image/jpeg'
+    ,url: layui.setter.api+'game-type_img_upload?access_token='+layui.data(layui.setter.tableName)['access_token']
+    ,exts:'jpg|png|jpeg'
+    ,auto: true //选择文件后自动上传
+    ,before:function(){
+      upload_loading = layer.msg('上传中...', {icon: 16,time:false});
+    }
+    ,done: function(res){ //上传后的回调
+      console.log(res);
+      $("[name='icon']").val(res.data.url);
+      $("#type_img").attr('src',res.data.complete_url);
+      $("#type_img").show();
+      setTimeout(function(){
+          layer.close(upload_loading);
+          // table.reload('LAY-type-table');
+          layer.msg('上传成功！', {icon: 6});
+      },500)
+    }
+  });
+
+  table.render({
+    elem: '#LAY-type-table'
+    ,url:layui.setter.api+'game-type_list'
+    ,cellMinWidth: 80
+    ,cols: [[
+      {field:'type_id', title:'分类id', unresize: false}
+      ,{field:'name',title:'分类名称',unresize: false}
+      ,{title:'分类图标',unresize: false,templet:function(d){
+        div = '';
+        div += '<div style="display: -webkit-inline-box;cursor:pointer" title="分类图标">';
+        div += '<img style="height: 100px;margin-right: 5px;" src="'+d.icon+'" onclick="show_pic(this)">'
+        // div +='<a class="layui-btn layui-btn-xs" id="game-img-'+d.id+'" >上传</a>';
+        div += '</div>';
+        return div;
+      }}
+      ,{field:'sync_redis_time',title:'生效时间',unresize: false}
+      ,{field:'status', title:'状态', unresize: false,templet:function(d){
+        if(d.status == 1){
+          var checked = 'checked';
+        }else{
+          var checked = '';
+        }
+        return '<input type="checkbox" name="close" lay-skin="switch" lay-filter="LAY-status" value="'+d.id+'" lay-text="启用|禁用" '+checked+'>';
+      }}
+      ,{field:'update_time',title:'操作时间',unresize: false}
+      ,{title:'操作',unresize: false,templet:function(d){
+        return '<a class="layui-btn layui-btn-xs" onclick="add_type('+d.id+')">编辑</a>';
+      }}
+    ]]
+    ,page: true
+    ,done:function(res, curr, count){
+      
+    }
+  }); 
+
+  //监听上下线
+  form.on('switch(LAY-status)', function(obj){
+      var status = this.checked ? 1 : 0;
+      var loading = layer.msg('处理中...', {icon: 16,time:false});
+      admin.req({
+        url: layui.setter.api+"game-type_save_one"
+        ,data: {'id':obj.value,'value':status,'field':'status'}
+        ,done: function(data){
+          setTimeout(function(){
+              layer.close(loading);
+              layer.msg(data.msg, {icon: 1})
+          },500)
+        }
+      });      
+  });
+  
+  function inee(id){
+    upload.render({
+      elem:'#game-img-'+id //绑定元素
+      ,acceptMime: 'image/jpg, image/png, image/jpeg'
+      ,url: layui.setter.api+'game-config_img_upload?id='+id+'&access_token='+layui.data(layui.setter.tableName)['access_token']
+      ,exts:'jpg|png|jpeg'
+      ,auto: true //选择文件后自动上传
+      ,before:function(){
+        upload_loading = layer.msg('上传中...', {icon: 16,time:false});
+      }
+      ,done: function(res){ //上传后的回调
+        setTimeout(function(){
+            layer.close(upload_loading);
+            table.reload('LAY-table');
+            layer.msg('上传成功！', {icon: 6});
+        },500)
+      }
+    });
+  } 
+
+  // 生效
+  $("#game_type_sync_redis").click(function(){
+
+    var loading = layer.msg('处理中...', {icon: 16,time:false});
+    admin.req({
+      url: layui.setter.api+"game-game_type_sync_redis"
+      ,done: function(data){
+        setTimeout(function(){
+          layer.close(loading);
+          layer.msg(data.msg, {icon: 1});
+          layer.close(index); //执行关闭
+        },500)
+      }
+    });
+  });
+})
+</script>

@@ -1,0 +1,61 @@
+
+<title>分组管理</title>
+<div class="layui-card layadmin-header">
+  <div class="layui-breadcrumb" lay-filter="breadcrumb">
+    <a>系统管理</a>
+    <a>分组管理</a>
+  </div>
+</div>
+<div class="layui-fluid">
+  <div class="layui-row layui-col-space15">
+    <div class="layui-col-md12">
+      <div class="layui-card">
+
+        <div class="layui-form layui-card-header layuiadmin-card-header-auto" lay-filter="app-content-list">
+          <div class="layui-form-item">           
+              <div class="layui-inline" style="float: right;">         
+                <button lay-href="system/group/add" class="layui-btn layuiadmin-btn-list"><i class="layui-icon layui-icon-add-1 layuiadmin-button-btn"></i>新建分组</button>
+              </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="layui-col-md12">
+      <div class="layui-card">
+        <div class="layui-card-body">
+            <table class="layui-hide" id="LAY-account-index-table" lay-filter="LAY-account-index-table"></table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script type="text/html" id="LAY-account-index-caozuo">
+	{{# if(d.type != 1){ }}
+	  	<a class="layui-btn layui-btn-xs" lay-href="system/group/edit/id={{d.id}}">编辑</a>
+	{{# }else{ }}
+	  	<a class="layui-btn layui-btn-xs layui-btn-disabled">编辑</a>
+	{{# } }}                    
+</script> 
+
+<script>
+layui.use(['admin', 'table', 'form'], function(){
+  var $ = layui.$
+  ,admin = layui.admin
+  ,table = layui.table
+  ,form = layui.form
+  ,router = layui.router();
+  form.render();
+
+  table.render({
+    elem: '#LAY-account-index-table'
+    ,url:layui.setter.api+'common-group_list'
+    ,cellMinWidth: 80
+    ,cols: [[
+      {field:'name', title:'分组名称', unresize: false}
+      ,{ align:'left',width:150, title:'操作', fixed: 'right', toolbar: '#LAY-account-index-caozuo'}
+      
+    ]]
+    ,page: true
+  }); 
+});
+</script>

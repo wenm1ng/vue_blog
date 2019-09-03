@@ -1,0 +1,87 @@
+
+<title>添加分组</title>
+<div class="layui-card layadmin-header">
+  <div class="layui-breadcrumb" lay-filter="breadcrumb">
+    <a>系统管理</a>
+    <a lay-href="system/group/">分组管理</a>
+    <a>添加分组</a>
+  </div>
+</div>
+<div class="layui-fluid">
+  <div class="layui-row layui-col-space15">
+    <div class="layui-col-md12">
+      <div class="layui-card">
+        <div class="layui-card-header">设置资料</div>
+        <div class="layui-card-body" pad15>
+          
+          <div class="layui-form" lay-filter="">
+            <div class="layui-form-item">
+              <label class="layui-form-label">分组名称</label>
+              <div class="layui-input-inline">
+                <input type="text" name="name" placeholder="请输入分组名称" lay-verify="name" class="layui-input">
+              </div>
+              <div class="layui-form-mid layui-word-aux">
+                一般用于后台登入名,不能有特殊字符、首尾不能出现下划线、不能全为数字
+              </div>
+            </div>
+            <div class="layui-form-item">
+              <div class="layui-input-block">
+                <button class="layui-btn" lay-submit lay-filter="setinfo">立即添加</button>
+              </div>
+            </div>
+          </div>
+          
+        </div>
+      </div>
+    </div>
+  </div>
+</div> 
+
+<script>
+layui.use(['admin', 'table', 'form'], function(){
+  var $ = layui.$
+  ,admin = layui.admin
+  ,form = layui.form
+  form.render();
+  //自定义验证
+  form.verify({
+    name: function(value, item){ //value：表单的值、item：表单的DOM对象
+      if(!new RegExp("^[a-zA-Z0-9_\u4e00-\u9fa5\\s·]+$").test(value)){
+        return '分组名称不能有特殊字符';
+      }
+      if(/(^\_)|(\__)|(\_+$)/.test(value)){
+        return '分组名称首尾不能出现下划线\'_\'';
+      }
+      if(/^\d+\d+\d$/.test(value)){
+        return '分组名称不能全为数字';
+      }
+    }
+    
+    //我们既支持上述函数式的方式，也支持下述数组的形式
+    //数组的两个值分别代表：[正则匹配、匹配不符时的提示文字]
+    ,pass: [
+      /^[\S]{6,12}$/
+      ,'密码必须6到12位，且不能出现空格'
+    ]
+  });  
+  //表单提交
+  form.on('submit(setinfo)', function(data){
+    var loading = layer.msg('处理中...', {icon: 16,time:false});
+    admin.req({
+      url: layui.setter.api+'common-group_add',
+      data: data.field,
+      type: 'post',
+      done: function(res){
+        setTimeout(function(){
+            layer.close(loading);
+            layer.msg(res.msg, {icon: 1},function(){
+              location.hash = '/system/group/'
+            })
+        },500)
+      }
+    });
+    return false;
+  });
+ 
+});
+</script>

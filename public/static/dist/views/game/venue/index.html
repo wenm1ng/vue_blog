@@ -1,0 +1,338 @@
+<title>场次配置</title>
+
+<style type="text/css">
+    .layui-table img {
+        max-width: 100%;
+        max-height: 50px;
+    }
+</style>
+
+<div class="layui-card layadmin-header">
+    <div class="layui-breadcrumb" lay-filter="breadcrumb">
+        <a>游戏管理</a>
+        <a>场次配置</a>
+    </div>
+</div>
+
+<div class="layui-fluid">
+    
+    <div class="layui-row layui-col-space15">
+        
+        <div class="layui-col-md12">
+            <div class="layui-card">
+
+                <div class="layui-form layui-card-header layuiadmin-card-header-auto" lay-filter="app-content-list">
+                    <div class="layui-form-item">
+                        <div class="layui-input-inline">
+                            <input type="text" name="id_name" placeholder="游戏名/游戏ID" autocomplete="off" class="layui-input">
+                        </div>
+
+                        <div class="layui-input-inline">
+                            <button class="layui-btn layuiadmin-btn-list" lay-submit="" lay-filter="LAY-venue_list-search">
+                                <i class="layui-icon layui-icon-search layuiadmin-button-btn"></i>
+                            </button>
+                        </div>
+
+                        <div class="layui-inline" style="float: right;">
+                            <button id="add" class="layui-btn layuiadmin-btn-list"><i class="layui-icon layui-icon-add-1 layuiadmin-button-btn"></i>新增场次</button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="layui-col-md12">
+            <div class="layui-card">
+                <div class="layui-card-body">
+                    <table class="layui-hide" id="LAY-venue_list-index-table" lay-filter="LAY-venue_list-table"></table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- <script id="LAY-venue_list-index-image" type="text/html">
+    <div><img src="{{d.image}}" onclick="show_pic(this)"></div>
+</script>-->
+
+<!-- <script type="text/html" id="LAY-venue_list-index-data-cmd">
+    <input type="submit" value="编辑">
+</script> -->
+<script type="text/html" id="LAY-venue_list-index-data-cmd">
+    <a class="layui-btn layui-btn-xs" lay-event="edit">编辑</a>
+</script>
+<script type="text/html" id="LAY-venue_list-index-intor">
+    <a class="layui-btn layui-btn-xs" lay-event="edit1">编辑</a>
+</script>
+<script type="text/html" id="LAY-venue_list-index-image">
+    <a class="layui-btn layui-btn-xs" id="game_venue-img-{{d.id}}">上传</a>
+    <a class="layui-btn layui-btn-xs" onclick="show_pic('{{d.image}}')">查看</a>
+</script>
+<script type="text/html" id="LAY-venue_list-index-choose-play">
+    <a class="layui-btn layui-btn-xs" lay-event="edit3">勾选</a>
+</script>
+<script id="LAY-venue_list-status" type="text/html">
+    <input type="checkbox" name="close" lay-skin="switch" lay-filter="LAY-venue_list-status" value="{{d.id}}" lay-text="在线|下线" {{ d.status == 1 ? 'checked' : '' }}>
+</script>
+
+<script>
+    var test;
+    layui.use(['admin', 'table', 'form', 'role', 'view', 'upload'], function(){
+        var $ = layui.$
+        ,admin = layui.admin
+        ,role = layui.role
+        ,table = layui.table
+        ,view = layui.view
+        ,upload = layui.upload
+        ,form = layui.form;
+
+        var laysearch = layui.data(layui.setter.tableName);
+        form.render();
+
+        table.render({
+            elem: '#LAY-venue_list-index-table'
+            ,url:layui.setter.api+'venue-venue_list'
+            ,cellMinWidth: 80
+            ,cols: [[
+                {field:'name',title:'游戏名称',unresize: true}
+                ,{field:'game_id',title:'游戏ID',unresize: true}
+                ,{field:'venue_id',title:'场次ID',unresize: true}
+                ,{field:'venue_name',title:'场次名',unresize: true}
+                ,{field:'base_score',title:'底分',unresize: true}
+                ,{field:'table_fee',title:'台费',unresize: true}
+                ,{field:'min_gold',title:'准入下限',unresize: true}
+                ,{field:'max_gold',title:'准入上限',unresize: true}
+                ,{field:'fast_min_gold',title:'快捷下限',unresize: true}
+                ,{field:'fast_max_gold',title:'快捷上限',unresize: true}
+                ,{field:'player_num',title:'人数',unresize: true}
+                ,{field:'sort',title:'排序',unresize: true}
+                ,{field:'id',title:'数据控制',unresize: true,toolbar:'#LAY-venue_list-index-data-cmd'}
+                ,{field:'id',title:'场次规则说明',unresize: true,toolbar:'#LAY-venue_list-index-intor'}
+                ,{field:'image',title:'图片',unresize: true,width:105,toolbar:'#LAY-venue_list-index-image'}
+                // ,{field:'upload',title: '图片',unresize: true,width:110,templet:function(d){return '<a class="layui-btn layui-btn-xs" id="game_venue-img-'+d.id+'">上传</a>&nbsp&nbsp<a class="layui-btn layui-btn-xs" onclick="show_pic('+"'"+d.image+"'"+')">查看</a>'}}
+                ,{field:'id',title:'玩法配置勾选',unresize: true,toolbar:'#LAY-venue_list-index-choose-play'}
+                ,{field:'status', title: '状态',unresize: true,templet: '#LAY-venue_list-status'}
+            ]]      
+            ,page: true
+            ,done:function(res, curr, count){
+                // $("[name='id_name']").val(laysearch.venue_list?laysearch.venue_list.id_name:'');
+                // role.render("venue_list");
+                // form.render();
+
+                $.each(res.data,function(i){
+                    inee(res.data[i].id)
+                });
+            }
+        });
+
+        // 监听显示隐藏操作
+        form.on('switch(LAY-venue_list-status)', function(obj){
+            var status = this.checked ? 1 : 0;
+            var loading = layer.msg('处理中...', {icon: 16,time:false});
+            admin.req({
+                url: layui.setter.api+"venue-venue_save"
+                ,data: {'id':obj.value,'status':status}
+                ,done: function(data){
+                    setTimeout(function(){
+                        layer.close(loading);
+                        layer.msg(data.msg, {icon: 1})
+                    },500)
+                }
+            });
+        });
+
+        //监听搜索
+        form.on('submit(LAY-venue_list-search)', function(data){
+            layui.data(layui.setter.tableName, {
+                key: 'venue_list'
+                ,value: data.field
+            });
+            table.reload('LAY-venue_list-index-table', {
+                where:{
+                    id_name: data.field.id_name,
+                }
+                ,page: {
+                    curr: 1 //重新从第 1 页开始
+                }
+                ,done:function(){
+                    form.render();
+                }
+            });
+        });
+
+        // 监听工具条
+        table.on('tool(LAY-venue_list-table)', function(obj){
+            var data = obj.data;
+            if(obj.event === 'edit'){
+                admin.popup({
+                    title: '数据控制'
+                    ,area: ['500px', '800px']
+                    ,id: 'LAY-venue_list-edit'
+                    ,success: function(layero, index){
+                        view(this.id).render('game/venue/edit', data).done(function(){
+                            form.render(null, 'layuiadmin-form-edit');
+                            // 监听提交
+                            form.on('submit(LAY-user-back-submit)', function(data){
+                                var field = data.field; //获取提交的字段
+                                field.id = obj.data.id;
+                                // console.log(field);
+                                //提交 Ajax 成功后，关闭当前弹层并重载表格
+                                var loading = layer.msg('处理中...', {icon: 16,time:false});
+                                admin.req({
+                                    url: layui.setter.api+"venue-venue_save"
+                                    ,data: field
+                                    ,done: function(data){
+                                        setTimeout(function(){
+                                            layer.close(loading);
+                                            layer.msg(data.msg, {icon: 1});
+                                            layui.table.reload('LAY-venue_list-index-table'); //重载表格
+                                            layer.close(index); //执行关闭
+                                        },500)
+                                    }
+                                });
+                            });
+                        });
+                    }
+                });
+            }else if(obj.event === 'edit1'){
+                test = data;
+                admin.popup({
+                    title: '数据控制'
+                    ,area: ['700px', '800px']
+                    ,id: 'LAY-venue_list-edit1'
+                    ,success: function(layero, index){
+                        // console.log(data);
+                        view(this.id).render('game/venue/edit1', data).done(function(){
+                            // form.render(null, 'layuiadmin-form-edit1');
+                            // 监听提交
+                            form.on('submit(LAY-user-back-submit)', function(data){
+                                var field = data.field; //获取提交的字段
+                                field.id = obj.data.id;
+                                field.intro_info = UE.getEditor('editor').getContent();
+                                // console.log(field);
+                                //提交 Ajax 成功后，关闭当前弹层并重载表格
+                                // var loading = layer.msg('处理中...', {icon: 16,time:false});
+                                admin.req({
+                                    url: layui.setter.api+"venue-venue_intro_save"
+                                    ,data: field
+                                    ,done: function(data){
+                                        setTimeout(function(){
+                                            // layer.close(loading);
+                                            layer.msg(data.msg, {icon: 1});
+                                            // layui.table.reload('LAY-venue_list-index-table'); //重载表格
+                                            layer.close(index); //执行关闭
+                                        },500)
+                                    }
+                                });
+                            });
+                        });
+                    }
+                });
+            }else if(obj.event === 'edit3'){
+                test = data;
+                admin.popup({
+                    title: '玩法配置'
+                    ,area: ['500px', '400px']
+                    ,id: 'LAY-venue_list-edit3'
+                    ,success: function(layero, index){
+                        view(this.id).render('game/venue/edit3', data).done(function(){
+                            form.render(null, 'layuiadmin-form-edit3');
+                            // 监听提交
+                            form.on('submit(LAY-user-back-submit)', function(data){
+                                var field = data.field; //获取提交的字段
+                                field.id = obj.data.id;
+                                // console.log(field);
+                                //提交 Ajax 成功后，关闭当前弹层并重载表格
+                                var loading = layer.msg('处理中...', {icon: 16,time:false});
+                                admin.req({
+                                    url: layui.setter.api+"venue-venue_play_save"
+                                    ,data: field
+                                    ,done: function(data){
+                                        // console.log(data);
+                                        setTimeout(function(){
+                                            layer.close(loading);
+                                            layer.msg(data.msg, {icon: 1});
+                                            layui.table.reload('LAY-venue_list-index-table'); //重载表格
+                                            layer.close(index); //执行关闭
+                                        },500)
+                                    }
+                                });
+                            });
+                        });
+                    }
+                });
+            }
+        });
+
+        // 新增场次
+        $("#add").click(function(){
+
+            admin.popup({
+                title: '新增场次'
+                ,area: ['500px', '400px']
+                ,id: 'LAY-venue_list-add'
+                ,success: function(layero, index){
+                    view(this.id).render('game/venue/add').done(function(){
+                        form.render(null, 'layuiadmin-form-add');
+                        // 监听提交
+                        form.on('submit(LAY-user-back-submit)', function(data){
+                            var field = data.field; //获取提交的字段
+                            // console.log(field);
+                            //提交 Ajax 成功后，关闭当前弹层并重载表格
+                            var loading = layer.msg('处理中...', {icon: 16,time:false});
+                            admin.req({
+                                url: layui.setter.api+"venue-venue_add"
+                                ,data: field
+                                ,done: function(data){
+                                    setTimeout(function(){
+                                        layer.close(loading);
+                                        layer.msg(data.msg, {icon: 1});
+                                        layui.table.reload('LAY-venue_list-index-table'); //重载表格
+                                        layer.close(index); //执行关闭
+                                    },500)
+                                }
+                            });
+                        });
+                    });
+                }
+            });
+        });
+
+        function inee(id){
+            upload.render({
+                elem: '#game_venue-img-'+id
+                ,acceptMime:'image/jpg, image/png, image/jpeg'
+                ,url:layui.setter.api+'venue-venue_img_upload'+'?access_token='+layui.data(layui.setter.tableName)['access_token']
+                ,method:'post'  //可选项。HTTP类型，默认post
+                ,data:{id:id}  //可选项。额外的参数，如：{id: 123, abc: 'xxx'}
+                ,exts:'jpg|png|jpeg'
+                ,auto: true //选择文件后自动上传
+                ,before:function(){
+                    upload_loading = layer.msg('上传中...', {icon: 16,time:false});
+                }
+                ,done: function(res){ //上传后的回调
+                    // console.log(res);
+                    setTimeout(function(){
+                        layer.close(upload_loading);
+                        layui.table.reload('LAY-venue_list-index-table'); //重载表格
+                        layer.msg(res.msg,{icon:1});
+                    },500)
+                }
+            });
+        }
+
+        // 查看图片
+        window.show_pic = function (src){
+            var arr = {
+                "data":[]
+                // "start": $(dom).index(),
+            }
+            arr['data'].push({"src":src})
+            layer.photos({
+                photos: arr
+            });
+        }
+    });
+</script>

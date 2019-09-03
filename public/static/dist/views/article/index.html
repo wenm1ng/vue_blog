@@ -1,0 +1,456 @@
+
+<title>文章列表</title>
+<style>
+/* 防止下拉框的下拉列表被隐藏---必须设置--- */
+.layui-table-cell {
+  height: auto;
+            /*空白会被浏览器忽略*/
+  white-space: normal;
+            /*允许长单词换行到下一行*/
+  word-wrap: break-word;
+            /*允许在单词内换行*/
+  word-break: break-all;
+  overflow: visible;
+  min-height: 28px;
+}
+
+.layui-table-box {
+    overflow: visible;
+}
+
+.layui-table-body {
+    overflow: visible;
+}
+/* 设置下拉框的高度与表格单元相同 */
+td .layui-form-select{
+  margin-top: -10px;
+  margin-left: -15px;
+  margin-right: -15px;
+}
+
+
+.play_type_table>.layui-form{
+  height: auto;
+}
+
+#add_service_div .layui-form-label{
+  width: 140px;
+}
+
+/* #add_service_div .layui-input-block{
+  width: 100px;
+} */
+</style>
+<div class="layui-card layadmin-header">
+  <div class="layui-breadcrumb" lay-filter="breadcrumb">
+    <a>文章管理</a>
+    <a>文章列表</a>
+  </div>
+</div>
+<div class="layui-fluid">
+  <div class="layui-row layui-col-space15">
+    <div class="layui-col-md12">
+      <div class="layui-card">
+
+        <div class="layui-form layui-card-header layuiadmin-card-header-auto">
+          <div class="layui-form-item">           
+              <div class="layui-inline" style="float: right;">         
+                <button onclick="add_article()" class="layui-btn layuiadmin-btn-list"><i class="layui-img layui-img-add-1 layuiadmin-button-btn"></i>新建文章</button>
+              </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="layui-col-md12">
+      <div class="layui-card">
+        <div class="layui-card-body">
+            <table class="layui-hide" id="LAY-article-table" lay-filter="LAY-article-table"></table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!--新增modal-->
+<div class="layui-fluid" id="add_div" style="display:none">
+  <div class="layui-row layui-col-space15">
+    <div class="layui-col-md12">
+      <div class="layui-card">
+        <div class="layui-card-body" pad15>
+          
+          <div class="layui-form" lay-filter="article-form">
+            
+            <div class="layui-form-item">
+                <label class="layui-form-label">介绍</label>
+                <div class="layui-form-mid">
+                    <div class="layui-row" style="color: red;">
+                        注：1、暂不支持视频和音频的上传&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2、上传图片不能大于2M
+                    </div>
+                </div>
+            </div>
+            
+
+            <div class="layui-form-item">
+              <label class="layui-form-label">文章标题</label>
+              <div class="layui-input-inline">
+                <input type="hidden" name="id" value="">
+                <input type="text" name="title" autocomplete="off" placeholder="请输入文章标题" class="layui-input" lay-verify="required">
+              </div>
+            </div>
+            
+            <div class="layui-form-item">
+              <label class="layui-form-label">关键词</label>
+              <div class="layui-input-inline">
+                <input type="hidden" name="id" value="">
+                <input type="text" name="key" autocomplete="off" placeholder="请输入文章关键词" class="layui-input" lay-verify="required">
+              </div>
+            </div>
+
+            <div class="layui-form-item">
+              <label class="layui-form-label">文章图标</label>
+              <div style="display: -webkit-inline-box;cursor:pointer" title="文章图标">
+                <img style="height: 100px;margin-right: 5px;display:none" src="" onclick="show_pic(this)" id="img">
+                <input type="hidden" name="img" value="">
+                <input type="hidden" name="id" value="">
+                <a class="layui-btn " id="upload" >上传</a>
+              </div>
+              <!-- <button class="layui-btn" lay-filter="add_game">立即添加</button> -->
+            </div>
+
+            <div class="layui-form-item">
+                <!-- <label class="layui-form-label"></label> -->
+                <div class="layui-input-inline">
+                    <script id="editor" type="text/plain" style="height:450px;width: 660px;"></script>
+                </div>
+            </div>
+
+            <div class="layui-form-item">
+              <div class="layui-input-block" style="margin-left: 39%">
+                <button class="layui-btn" lay-submit lay-filter="save_info">提交</button>
+                <button class="layui-btn layui-btn-primary" id="cancel">取消</button>
+              </div>
+            </div>
+          </div>
+          
+        </div>
+      </div>
+    </div>
+  </div>
+</div> 
+
+<!--评论列表-->
+<div class="layui-fluid" id="comment_div" style="display:none">
+  <div class="layui-row layui-col-space15">
+    <div class="layui-col-md12">
+      <div class="layui-card">
+        <div class="layui-card-body">
+            <table class="layui-hide" id="LAY-comment-table" lay-filter="LAY-comment-table"></table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  layui.use(['admin', 'table', 'form', 'upload'], function(){
+  var $ = layui.$
+  ,admin = layui.admin
+  ,table = layui.table
+  ,upload = layui.upload
+  ,form = layui.form
+  ,router = layui.router();
+  form.render();
+
+  UE.delEditor('editor');
+  var ue = UE.getEditor('editor');
+
+  //自定义验证
+  form.verify({
+    article_id: function(value, item){ //value：表单的值、item：表单的DOM对象
+      if(!/^\d+$/.test(value)){
+        return '文章id只能为数字组成';
+      }
+    }
+    ,require:function(value,item){
+      if(value == ''){
+        return '此项不能为空';
+      }
+    }
+
+  });  
+
+  //查看图片
+  window.show_pic = function (dom){
+    var arr={
+     "data":[],
+     "start": $(dom).index(),
+    }
+    arr['data'].push({"src":dom.src})
+    layer.photos({
+      photos: arr
+    }); 
+  }
+
+  window.add_article = function(article_id = ''){
+    // console.log(article_id);
+    if(article_id == ''){
+      //新增
+      index = layer.open({
+        type: 1, 
+        title: '新增文章',
+        shadeClose: true,
+        shade: 0,
+        area: ['50%', '80%'],
+        offset:'auto',
+        content: $("#add_div"), //这里content是一个普通的String
+        cancel:function(){
+          $("#img").attr('src','');
+          $("#img").hide();
+
+          form.val('article-form', {
+            "title":'',
+            "key":'',
+            "img":'',
+            "id":''
+          })
+
+          form.render();
+        }
+      });
+    }else{
+      admin.req({
+        url: layui.setter.api+'article-get_info',
+        data: {'id':article_id},
+        type: 'post',
+        async:false, 
+        done: function(data){
+          var res = data.data;
+          $("#img").attr('src',res.img);
+          $("#img").show();
+          //表单初始赋值
+          form.val('article-form', {
+            "title":res.title,
+            "key":res.key,
+            "img":res.img,
+            "id":res.article_id
+          })
+
+          form.render();
+
+          var ue = UE.getEditor('editor');
+
+            ue.ready(function() {
+              setTimeout(function(){
+                ue.setContent(res.content);
+              },400)
+            });
+        }
+      });  
+
+      //编辑文章
+      index = layer.open({
+        type: 1, 
+        title: '编辑文章',
+        shadeClose: true,
+        shade: 0,
+        area: ['50%', '80%'],
+        offset:'auto',
+        content: $("#add_div"), //这里content是一个普通的String
+        cancel:function(){
+          $("#img").attr('src','');
+          $("#img").hide();
+          form.val('article-form', {
+            "title":'',
+            "key":'',
+            "img":'',
+            "id":''
+          })
+
+          form.render();
+        }
+      })
+    }  
+  }
+
+  $("#cancel").click(function(){
+    layer.close(index);
+    $("#img").attr('src','');
+    $("#img").hide();
+    form.val('article-form', {
+      "title":'',
+      "key":'',
+      "img":'',
+      "id":''
+    })
+
+    form.render();
+  })
+
+  //提交
+  form.on('submit(save_info)', function(data){
+    var img = $("[name='img']").val();
+    if(img == ''){
+      layer.msg('请上传文章图标',{img:5});return;
+    }
+    var field = data.field; //获取提交的字段
+    field.content = UE.getEditor('editor').getContent()
+    var loading = layer.msg('处理中...', {img: 16,time:false});
+    admin.req({
+      url: layui.setter.api+'article-save_info',
+      data: data.field,
+      type: 'post',
+      done: function(res){
+        setTimeout(function(){
+            layer.close(loading);
+            layer.msg(res.msg, {img: 1},function(){
+              layer.close(index);
+              table.reload('LAY-article-table');
+            })
+        },500)
+      }
+    });
+    return false;
+  });
+
+  upload.render({
+    elem:'#upload' //绑定元素
+    ,acceptMime: 'image/jpg, image/png, image/jpeg'
+    ,url: layui.setter.api+'file-upload_img?access_token='+layui.data(layui.setter.tableName)['access_token']
+    ,exts:'jpg|png|jpeg'
+    ,auto: true //选择文件后自动上传
+    ,before:function(){
+      upload_loading = layer.msg('上传中...', {img: 16,time:false});
+    }
+    ,done: function(res){ //上传后的回调
+      console.log(res);
+      $("#img").attr('src',res.data);
+      $("#img").show();
+      form.val('article-form',{
+        'img':res.data
+      })
+      form.render();
+      setTimeout(function(){
+          layer.close(upload_loading);
+          // table.reload('LAY-article-table');
+          layer.msg('上传成功！', {img: 6});
+      },500)
+    }
+  });
+
+  table.render({
+    elem: '#LAY-article-table'
+    ,url:layui.setter.api+'article-index'
+    ,cellMinWidth: 80
+    ,cols: [[
+      {field:'article_id', title:'序号',unresize: false}
+      ,{field:'title',title:'标题', edit:'text',unresize: false}
+      ,{field:'key',title:'关键词', edit:'text',unresize: false}
+      ,{title:'封面图',unresize: false,templet:function(d){
+        div = '';
+        div += '<div style="display: -webkit-inline-box;cursor:pointer" title="封面图">';
+        div += '<img style="height: 100px;margin-right: 5px;" src="'+d.img+'" onclick="show_pic(this)">'
+        // div +='<a class="layui-btn layui-btn-xs" id="game-img-'+d.id+'" >上传</a>';
+        div += '</div>';
+        return div;
+      }}
+      ,{field:'read_num',title:'阅读量',unresize: false}
+      ,{field:'comment_num',title:'回复量',unresize: false}
+      ,{field:'status', title:'状态', unresize: false,templet:function(d){
+        if(d.status == 1){
+          var checked = 'checked';
+        }else{
+          var checked = '';
+        }
+        return '<input type="checkbox" name="close" lay-skin="switch" lay-filter="LAY-status" value="'+d.article_id+'" lay-text="启用|禁用" '+checked+'>';
+      }}
+      ,{field:'update_time',title:'操作时间',unresize: false}
+      ,{title:'操作',unresize: false,templet:function(d){
+        return '<a class="layui-btn layui-btn-xs" onclick="add_article('+d.article_id+')">编辑</a>&nbsp;<a class="layui-btn layui-btn-xs" onclick="reply('+d.article_id+')">回复评论</a>';
+      }}
+    ]]
+    ,page: true
+    ,done:function(res, curr, count){
+      
+    }
+  }); 
+
+  window.reply = function(article_id){
+    table.render({
+      elem: '#LAY-comment-table'
+      ,where:{
+        id:article_id
+      }
+      ,url:layui.setter.api+'article-comment_list'
+      ,cellMinWidth: 80
+      ,cols: [[
+        {field:'comment_id', title:'评论ID',unresize: false}
+        ,{field:'content',title:'评论内容', unresize: false}
+        ,{title:'评论内容', unresize: false,templet:function(d){
+          if(d.to_myself == 1){
+            return '留言';
+          }else{
+            return '评论';
+          }
+        }}
+        ,{field:'create_time',title:'评论时间',unresize: false}
+        ,{field:'reply_content',title:'回复内容',edit:'text',unresize: false}
+      ]]
+      ,page: true
+      ,done:function(res, curr, count){
+        
+      }
+    }); 
+
+    comment = layer.open({
+      type: 1, 
+      title: '评论列表',
+      shadeClose: true,
+      shade: 0,
+      area: ['50%', '80%'],
+      offset:'auto',
+      content: $("#comment_div"), //这里content是一个普通的String
+      cancel:function(){
+        layer.close(comment);
+      }
+    });
+
+    $("#cancel_comment").click(function(){
+      layer.close(comment);
+      
+    })
+  }
+
+  //监听单元格编辑
+  table.on('edit(LAY-comment-table)', function(obj){
+      var loading = layer.msg('处理中...', {icon: 16,time:false});
+      admin.req({
+        url: layui.setter.api+'article-comment_save',
+        data: {'id':obj.data.comment_id,'article_id':obj.data.article_id,'content':obj.value,'user_id':obj.data.user_id,'user_name':obj.data.user_name},
+        type: 'post',
+        done: function(res){
+          setTimeout(function(){
+              layer.close(loading);
+              layer.msg(res.msg, {icon: 1})
+              layer.close(comment);
+          },500)             
+        }
+      });            
+  });  
+
+  //监听上下线
+  form.on('switch(LAY-status)', function(obj){
+      var status = this.checked ? 1 : 0;
+      var loading = layer.msg('处理中...', {img: 16,time:false});
+      admin.req({
+        url: layui.setter.api+"article-save_one"
+        ,data: {'id':obj.value,'value':status,'field':'status'}
+        ,done: function(data){
+          setTimeout(function(){
+              layer.close(loading);
+              layer.msg(data.msg, {img: 1})
+          },500)
+        }
+      });
+  });
+})
+</script>

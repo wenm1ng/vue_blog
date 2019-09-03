@@ -1,0 +1,778 @@
+
+<title>游戏配置</title>
+<style>
+/* 防止下拉框的下拉列表被隐藏---必须设置--- */
+.layui-table-cell {
+  height: auto;
+            /*空白会被浏览器忽略*/
+  white-space: normal;
+            /*允许长单词换行到下一行*/
+  word-wrap: break-word;
+            /*允许在单词内换行*/
+  word-break: break-all;
+  overflow: visible;
+  min-height: 28px;
+}
+
+.layui-table-box {
+    overflow: visible;
+}
+
+.layui-table-body {
+    overflow: visible;
+}
+/* 设置下拉框的高度与表格单元相同 */
+td .layui-form-select{
+  margin-top: -10px;
+  margin-left: -15px;
+  margin-right: -15px;
+}
+
+
+.play_type_table>.layui-form{
+  height: auto;
+}
+
+#add_service_div .layui-form-label{
+  width: 140px;
+}
+
+/* #add_service_div .layui-input-block{
+  width: 100px;
+} */
+</style>
+<div class="layui-card layadmin-header">
+  <div class="layui-breadcrumb" lay-filter="breadcrumb">
+    <a>运营管理</a>
+    <a>运营活动</a>
+  </div>
+</div>
+<div class="layui-fluid">
+  <div class="layui-row layui-col-space15">
+    <div class="layui-col-md12">
+      <div class="layui-card">
+
+        <div class="layui-form layui-card-header layuiadmin-card-header-auto">
+          <div class="layui-form-item">           
+              <div class="layui-input-inline">
+                  <input type="text" name="ser_act_name" placeholder="活动名称" autocomplete="off" class="layui-input">
+              </div>
+              <div class="layui-input-inline">
+                  <input type="text" name="ser_describe" placeholder="描述关键字" autocomplete="off" class="layui-input">
+              </div>
+              <div class="layui-input-inline">
+                  <input type="text" name="ser_game_name" placeholder="游戏名称" autocomplete="off" class="layui-input">
+              </div>
+              <div class="layui-input-inline">
+                  <input type="text" name="ser_venue_name" placeholder="场次名称" autocomplete="off" class="layui-input">
+              </div>
+
+              <div class="layui-input-inline">
+                  <button class="layui-btn layuiadmin-btn-list" lay-submit="" lay-filter="LAY-search">
+                      <i class="layui-icon layui-icon-search layuiadmin-button-btn"></i>
+                  </button>
+              </div>
+
+              <div class="layui-inline" style="float: right;">         
+                <button onclick="add_activity()" class="layui-btn layuiadmin-btn-list"><i class="layui-icon layui-icon-add-1 layuiadmin-button-btn"></i>新增活动</button>
+              </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="layui-col-md12">
+      <div class="layui-card">
+        <div class="layui-card-body">
+            <table class="layui-hide" id="LAY-activity-table" lay-filter="LAY-activity-table"></table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!--新增modal-->
+<div class="layui-fluid" id="add_div" style="display:none">
+  <div class="layui-row layui-col-space15">
+    <div class="layui-col-md12">
+      <div class="layui-card">
+        <div class="layui-card-body" pad15>
+          
+          <div class="layui-form" lay-filter="activity-form">
+            <div class="layui-form-item">
+              <label class="layui-form-label">活动id</label>
+              <div class="layui-form-mid layui-word-aux" id="edit_act_id"></div>
+            </div>
+            <div class="layui-form-item">
+              <label class="layui-form-label">活动名</label>
+              <div class="layui-input-inline">
+                <input type="text" name="act_name" autocomplete="off" placeholder="请输入活动名" class="layui-input" lay-verify="require">
+              </div>
+            </div>
+            <!-- <div class="layui-form-item">
+              <label class="layui-form-label">描述</label>
+              <div class="layui-input-inline">
+                <input type="text" name="describe" autocomplete="off" placeholder="请输入描述" class="layui-input" lay-verify="require">
+              </div>
+            </div>
+            <div class="layui-form-item layui-form-text">
+              <label class="layui-form-label">应用场次</label>
+              <div class="layui-input-block">
+                <textarea name="venue_name" placeholder="" lay-verify="venue" class="layui-textarea" style="width:auto" readonly=""></textarea>
+                <button onclick="change_venue()" style="float:right" class="layui-btn layuiadmin-btn-list"><i class="layui-icon layui-icon-add-1 layuiadmin-button-btn"></i>更换场次</button>
+              </div>
+            </div> -->
+            <div class="layui-form-item">
+              <div class="layui-input-block">
+                <input type="hidden" name="venue_info" value="">
+                <input type="hidden" name="id" value="">
+                <input type="hidden" name="h_act_id" value="">
+                <button class="layui-btn" lay-submit lay-filter="save_activity">提交</button>
+                <button class="layui-btn layui-btn-primary" id="cancel_activity">取消</button>
+              </div>
+            </div>
+          </div>
+          
+        </div>
+      </div>
+    </div>
+  </div>
+</div> 
+
+<!--游戏场次列表-->
+<div class="layui-fluid" id="venue_div" style="display:none">
+  <div class="layui-row layui-col-space15">
+    <div class="layui-col-md12">
+      <div class="layui-card">
+        <div class="layui-card-body" pad15>
+          
+          <div class="layui-form" lay-filter="venue-form" id="venue-form">
+
+            <div class="layui-form-item">
+              <div class="layui-input-block">
+                <button class="layui-btn" lay-submit lay-filter="save_venue">提交</button>
+                <button class="layui-btn layui-btn-primary" id="cancel_venue">取消</button>
+              </div>
+            </div>
+          </div>
+          
+        </div>
+      </div>
+    </div>
+  </div>
+</div> 
+
+<!--活动配置列表-->
+<div class="layui-fluid" id="add_config_div" style="display:none">
+  <div class="layui-row layui-col-space15">
+    <div class="layui-col-md12">
+      <div class="layui-card">
+        <div class="layui-card-body" pad15>
+          
+          <div class="layui-form" lay-filter="config-form" id="config-form">
+            <div class="layui-col-md12">
+              <div class="layui-card">
+                <div class="layui-card-body">
+                    <table class="layui-hide" id="LAY-config-table" lay-filter="LAY-config-table"></table>
+                </div>
+              </div>
+            </div>
+            <div class="layui-form-item">
+              <div class="layui-input-block">
+                <input type="hidden" name="config_act_id" value="">
+                <button class="layui-btn" lay-submit lay-filter="save_config">提交</button>
+                <button class="layui-btn layui-btn-primary" id="cancel_config">取消</button>
+              </div>
+            </div>
+          </div>
+          
+        </div>
+      </div>
+    </div>
+  </div>
+</div> 
+
+<script>
+  layui.use(['admin', 'table', 'form', 'upload'], function(){
+  var $ = layui.$
+  ,admin = layui.admin
+  ,table = layui.table
+  ,upload = layui.upload
+  ,form = layui.form
+  ,router = layui.router();
+  form.render();
+
+  //自定义验证
+  form.verify({
+    number: function(value, item){ //value：表单的值、item：表单的DOM对象
+      if(!/^\d+$/.test(value)){
+        return '此项为数字组成';
+      }
+    }
+    ,require:function(value,item){
+      if(value == ''){
+        return '此项不能为空';
+      }
+    }
+    ,venue:function(value,item){
+      if(value == ''){
+        return '请选择场次信息';
+      }
+    }
+
+  });  
+
+
+  form.on('checkbox(venue-checkbox-parent)', function(data){
+    check = '.'+data.elem.id;
+    $(check).prop('checked',$(this).prop('checked'));
+    form.render();
+  });
+
+  form.on('checkbox(venue-checkbox-child)', function(data){
+    check = '.'+data.elem.attributes['attr-id'].value;
+    id = '#'+data.elem.attributes['attr-id'].value;
+
+    is_check = 2;
+    for (var i = 0; i <= $(check).length - 1; i++) {
+      if($(check).eq(i).prop('checked')){
+        is_check = 1;
+      }
+    }
+
+    if(is_check == 2){
+      //没有被选中的
+      $(id).prop('checked',false);
+    }else{
+      //有被选中的，更新父节点
+      $(id).prop('checked',true);
+    }
+
+    form.render();
+  })
+
+  String.prototype.trim = function (char, type) {
+    if (char) {
+      if (type == 'left') {
+        return this.replace(new RegExp('^\\'+char+'+', 'g'), '');
+      } else if (type == 'right') {
+        return this.replace(new RegExp('\\'+char+'+$', 'g'), '');
+      }
+      return this.replace(new RegExp('^\\'+char+'+|\\'+char+'+$', 'g'), '');
+    }
+    return this.replace(/^\s+|\s+$/g, '');
+  };
+
+  //监听搜索
+  form.on('submit(LAY-search)', function(data){
+      table.reload('LAY-activity-table', {
+          where:{
+              ser_act_name: data.field.ser_act_name,
+              ser_describe: data.field.ser_describe,
+              ser_venue_name:data.field.ser_venue_name,
+              ser_game_name:data.field.ser_game_name,
+          }
+          ,page: {
+              curr: 1 //重新从第 1 页开始
+          }
+          ,done:function(){
+              form.render();
+          }
+      });
+  });
+
+  form.on('submit(save_venue)',function(data){
+    // console.log(data);
+    // console.log(data.field);return;
+    // key_arr = [];
+    game_id_arr = [];
+    $.each(data.field, function(index, val) {
+      if(index.indexOf('game_id') != -1){
+        key = index.substring(7,8);
+        // key_arr.push(key);
+        game_id_arr[key] = val;
+      }
+    });
+
+    venue_info = '';
+    $.each(data.field, function(index, val) {
+      if(index.indexOf('game_id') != -1){
+        venue_info += ','+val;
+      }
+      $.each(game_id_arr,function(key,v){
+        if(index.indexOf('venue_id') != -1 && index.substring(8,9) == key){
+          venue_info += '_'+val;
+        }
+      })
+
+    });
+    venue_info = venue_info.trim(',');
+
+    if(venue_info == ''){
+      layer.msg('请选择游戏场次', {icon: 5});return;
+    }
+
+    var loading = layer.msg('处理中...', {icon: 16,time:false});
+    admin.req({
+      url: layui.setter.api+'operate-activity_save_venue',
+      data: {act_id:data.field.venue_act_id,venue_info:venue_info},
+      type: 'post',
+      done: function(res){
+        setTimeout(function(){
+            layer.close(loading);
+            layer.msg(res.msg, {icon: 1},function(){
+              layer.close(index);
+              table.reload('LAY-activity-table');
+            })
+        },500)
+      }
+    });
+  })
+
+  window.change_venue = function(act_id = '',venue_info=''){  
+      // console.log(venue_info);return;
+      admin.req({
+        url: layui.setter.api+'operate-activity_get_venue',
+        type: 'post',
+        async:false, 
+        done: function(data){
+          new_arr = [];
+          if(venue_info != ''){
+            venue_arr = venue_info.split(',');
+            $.each(venue_arr,function(index,val){
+              venue_arr_new = val.split('_');
+              $.each(venue_arr_new,function(k,v){
+                aa = {};
+                if(k == 0){
+                  aa.type = 'game_id';
+                }else{
+                  aa.type = 'venue_id';
+                }
+                aa.value = v;
+                new_arr.push(aa);
+              })
+            })
+          }
+          // console.log(new_arr);
+          var res = data.data.data;
+
+          div = '';
+          num = 0;
+          $.each(res, function(index, val) {
+
+            form_div = '<div class="layui-form-item">'+
+              '<div class="layui-input-block">'+
+                '<input type="hidden" name="venue_act_id" value="'+act_id+'">'+
+                '<button class="layui-btn" lay-submit lay-filter="save_venue">提交</button>'+
+                '<button class="layui-btn layui-btn-primary" id="cancel_venue">取消</button>'+
+              '</div>'+
+            '</div>';
+            $("#venue-form").html(form_div);
+
+
+            game_arr = index.split('_');
+            game_id = game_arr[0];
+            game_name = game_arr[1];
+
+            div += '<div class="layui-form-item out">';
+            div += '<div>';
+
+            
+            div += '<input type="checkbox" class="parent" name="game_id'+num+'[]" title="'+game_name+'" id="parent-'+game_id+'" lay-filter="venue-checkbox-parent" lay-skin="primary" value="'+game_id+'" get_type="game_id">';
+            
+            div += '</div>';
+
+            div += '<label class="layui-form-label"></label>';
+            div += '<div class="layui-input-inline">';
+
+            $.each(val, function(k, v) {
+              
+              div += '<input type="checkbox" class="parent-'+game_id+'" attr-id="parent-'+game_id+'" name="venue_id'+num+'[]" title="'+v.venue_name+'"  lay-filter="venue-checkbox-child" lay-skin="primary" value="'+v.venue_id+'" get_type="venue_id">';
+
+            });
+
+            div += '</div>';
+            div += '</div>';
+            num++;
+          });
+
+          $("#venue-form").prepend(div);
+          //表单初始赋值
+          // form.val('activity-form', {
+          //   "act_id":res.act_id,
+          //   "type_name":res.name,
+          //   "icon":res.icon,
+          //   "id":res.id
+          // })
+          if(new_arr.length > 0){
+            $("[type='checkbox']").each(function(){
+              that = $(this);
+              $.each(new_arr,function(index,val){
+                // console.log(val);
+                if(that.val() == val.value && val.type == that.attr('get_type')){
+                  that.prop('checked',true);
+                }
+              })
+            })
+          }
+
+          form.render();
+        }
+      });
+
+      venue = layer.open({
+        type: 1, 
+        title: '应用场次选择',
+        shadeClose: true,
+        shade: 0,
+        area: ['27%', '70%'],
+        offset:'auto',
+        content: $("#venue_div"), //这里content是一个普通的String
+        cancel:function(){
+          $("[name='venue_act_id']").val('');
+          form.render();
+        }
+      });
+
+    $("#cancel_venue").click(function(){
+      $("[name='venue_act_id']").val('');
+      form.render();
+      layer.close(venue);
+    })
+  }
+
+  window.add_activity = function(act_id = ''){
+    // console.log(act_id);
+    if(act_id == ''){
+      //获取最新活动id
+      admin.req({
+        url: layui.setter.api+'operate-activity_get_act_id',
+        type: 'post',
+        async:false, 
+        done: function(data){
+          var res = data.data;
+          
+          $("#edit_act_id").html(res.act_id);
+
+          form.render();
+        }
+      }); 
+
+      //新增
+      index = layer.open({
+        type: 1, 
+        title: '新增活动',
+        shadeClose: true,
+        shade: 0,
+        area: ['27%', '35%'],
+        offset:'auto',
+        content: $("#add_div"), //这里content是一个普通的String
+        cancel:function(){
+
+          form.val('activity-form', {
+            "act_name":'',
+          })
+
+          form.render();
+        }
+      });
+    }else{
+      admin.req({
+        url: layui.setter.api+'operate-activity_get',
+        data: {'id':act_id},
+        type: 'post',
+        async:false, 
+        done: function(data){
+          var res = data.data;
+          //表单初始赋值
+          form.val('activity-form', {
+            "act_name":res.act_name,
+            "describe":res.describe,
+            "venue_name":res.venue_name,
+            "venue_info":res.venue_info,
+            "id":res.id,
+            "h_act_id":res.act_id
+          })
+
+          $("#edit_act_id").html(res.act_id);
+
+          form.render();
+        }
+      });  
+
+      //编辑分类
+      index = layer.open({
+        type: 1, 
+        title: '编辑活动',
+        shadeClose: true,
+        shade: 0,
+        area: ['27%', '60%'],
+        offset:'auto',
+        content: $("#add_div"), //这里content是一个普通的String
+        cancel:function(){
+          form.val('activity-form', {
+            "act_name":'',
+            "describe":'',
+            "venue_name":'',
+            "venue_info":'',
+            "id":'',
+            "h_act_id":''
+          })
+
+          $("#edit_act_id").html('');
+
+          form.render();
+        }
+      })
+    }  
+  }
+
+  $("#cancel_activity").click(function(){
+    layer.close(index);
+    
+    form.val('activity-form', {
+      "act_name":'',
+      "describe":'',
+      "venue_name":'',
+      "venue_info":'',
+      "id":'',
+      "h_act_id":''
+
+    })
+
+    $("#edit_act_id").html('');
+    form.render();
+  })
+
+  $("#cancel_config").click(function(){
+    layer.close(config);
+    
+    //表单初始赋值
+    form.val('config-form', {
+      "param_value":'',
+    })
+    $("[name='config_act_id']").val('');
+
+    form.render();
+  })
+
+  window.add_config = function(act_id = '',config_id = ''){
+    // console.log(config_id);return;
+    if(config_id == null){
+      //新增
+
+      $("[name='config_act_id']").val(act_id);
+      form.render();
+
+      config = layer.open({
+        type: 1, 
+        title: '新增数据配置',
+        shadeClose: true,
+        shade: 0,
+        area: ['35%', '45%'],
+        offset:'auto',
+        content: $("#add_config_div"), //这里content是一个普通的String
+        cancel:function(){
+
+          form.val('config-form', {
+            "param_value":'',
+          })
+
+          $("[name='config_act_id']").val('');
+
+
+          form.render();
+        }
+      });
+
+      table.render({
+        elem: '#LAY-config-table'
+        ,url:layui.setter.api+'operate-activity_config_list'
+        ,where:{
+          act_id:act_id,
+          is_edit:2
+        }
+        ,cellMinWidth: 80
+        ,cols: [[
+          {field:'param_name',title:'参数名',unresize: false}
+          ,{field:'param_define', title:'参数定义', unresize: false}
+          ,{field:'param_value_before', title:'原参数值', unresize: false}
+          ,{field:'param_value', title:'修正参数值',unresize: false,templet:function(d){
+            return '<input type="text" name="'+d.param_define+'" required lay-verify="require|number" autocomplete="off" class="layui-input">';
+          }}
+        ]]
+        ,page: false
+        ,done:function(res, curr, count){
+          
+        }
+      });
+    }else{
+      $("[name='config_act_id']").val(act_id);
+      form.render();
+
+      table.render({
+        elem: '#LAY-config-table'
+        ,url:layui.setter.api+'operate-activity_config_list'
+        ,where:{
+          act_id:act_id,
+          is_edit:1
+        }
+        ,cellMinWidth: 80
+        ,cols: [[
+          {field:'param_name',title:'参数名',unresize: false}
+          ,{field:'param_define', title:'参数定义', unresize: false}
+          ,{field:'param_value_before', title:'原参数值', unresize: false}
+          ,{field:'param_value', title:'修正参数值',unresize: false,templet:function(d){
+            return '<input type="text" name="'+d.param_define+'" required lay-verify="require|number" autocomplete="off" class="layui-input">';
+          }}
+        ]]
+        ,page: false
+        ,done:function(res, curr, count){
+          
+        }
+      });
+
+      //编辑分类
+      config = layer.open({
+        type: 1, 
+        title: '编辑数据配置',
+        shadeClose: true,
+        shade: 0,
+        area: ['27%', '60%'],
+        offset:'auto',
+        content: $("#add_config_div"), //这里content是一个普通的String
+        cancel:function(){
+          //表单初始赋值
+          form.val('config-form', {
+            "param_value":'',
+          })
+          $("[name='config_act_id']").val('');
+
+          form.render();
+        }
+      })
+    }  
+  }
+
+  //提交
+  form.on('submit(save_config)', function(data){
+    var loading = layer.msg('处理中...', {icon: 16,time:false});
+    admin.req({
+      url: layui.setter.api+'operate-activity_save_config',
+      data: data.field,
+      type: 'post',
+      done: function(res){
+        setTimeout(function(){
+            layer.close(loading);
+            layer.msg(res.msg, {icon: 1},function(){
+              layer.close(config);
+              // table.reload('LAY-activity-table');
+            })
+        },500)
+      }
+    });
+    return false;
+  });
+
+  //提交
+  form.on('submit(save_activity)', function(data){
+    var loading = layer.msg('处理中...', {icon: 16,time:false});
+    // console.log(data.field);return;
+    admin.req({
+      url: layui.setter.api+'operate-activity_save',
+      data: data.field,
+      type: 'post',
+      done: function(res){
+        setTimeout(function(){
+            layer.close(loading);
+            layer.msg(res.msg, {icon: 1},function(){
+              layer.close(index);
+              table.reload('LAY-activity-table');
+            })
+        },500)
+      }
+    });
+    return false;
+  });
+
+  //监听单元格编辑
+  table.on('edit(LAY-activity-table)', function(obj){
+      var loading = layer.msg('处理中...', {icon: 16,time:false});
+      admin.req({
+        url: layui.setter.api+'operate-activity_save_one',
+        data: {'id':obj.data.act_id,'field':obj.field,'value':obj.value},
+        type: 'post',
+        done: function(res){
+          setTimeout(function(){
+              layer.close(loading);
+              layer.msg(res.msg, {icon: 1})
+          },500)             
+        }
+      });            
+  });
+
+  window.activity_sync_redis = function(act_id){
+    var loading = layer.msg('处理中...', {icon: 16,time:false});
+    admin.req({
+      url: layui.setter.api+'operate-activity_sync_redis',
+      data: {'act_id':act_id},
+      type: 'post',
+      done: function(res){
+        setTimeout(function(){
+          layer.close(loading);
+          layer.msg(res.msg, {icon: 1})
+        },500)             
+      }
+    });
+  }
+
+  table.render({
+    elem: '#LAY-activity-table'
+    ,url:layui.setter.api+'operate-activity_list'
+    ,cellMinWidth: 80
+    ,cols: [[
+      {field:'act_name',title:'活动名称',unresize: false}
+      ,{field:'act_id', title:'活动ID', unresize: false}
+      ,{field:'describe', title:'描述', edit:'text',unresize: false}
+      ,{field:'venue_name', title:'应用场次', unresize: false}
+      ,{title:'场次选择', unresize: false,templet:function(d){
+        return '<a class="layui-btn layui-btn-xs" onclick="change_venue('+d.act_id+',\''+d.venue_info+'\')">选择</a>';
+      }}
+      ,{title:'数据配置', unresize: false,templet:function(d){
+        return '<a class="layui-btn layui-btn-xs" onclick="add_config('+d.act_id+','+d.id+')">数据配置</a>';
+      }}
+      ,{field:'status', title:'状态', unresize: false,templet:function(d){
+        if(d.status == 1){
+          var checked = 'checked';
+        }else{
+          var checked = '';
+        }
+        return '<input type="checkbox" name="close" lay-skin="switch" lay-filter="LAY-status" value="'+d.act_id+'" lay-text="在线|下线" '+checked+'>';
+      }}
+      ,{title:'操作', unresize: false,templet:function(d){
+        return '<a class="layui-btn layui-btn-xs" onclick="activity_sync_redis('+d.act_id+')">生效</a>';
+      }}
+    ]]
+    ,page: true
+    ,done:function(res, curr, count){
+      
+    }
+  }); 
+
+  //监听上下线
+  form.on('switch(LAY-status)', function(obj){
+      var status = this.checked ? 1 : 0;
+      var loading = layer.msg('处理中...', {icon: 16,time:false});
+      admin.req({
+        url: layui.setter.api+"operate-activity_save_one"
+        ,data: {'id':obj.value,'value':status,'field':'status'}
+        ,done: function(data){
+          setTimeout(function(){
+              layer.close(loading);
+              layer.msg(data.msg, {icon: 1})
+          },500)
+        }
+      });      
+  });
+})
+</script>

@@ -1,0 +1,373 @@
+
+<title>运营公告</title>
+<style>
+/* 防止下拉框的下拉列表被隐藏---必须设置--- */
+.layui-table-cell {
+  height: auto;
+            /*空白会被浏览器忽略*/
+  white-space: normal;
+            /*允许长单词换行到下一行*/
+  word-wrap: break-word;
+            /*允许在单词内换行*/
+  word-break: break-all;
+  overflow: visible;
+  min-height: 28px;
+}
+
+.layui-table-box {
+    overflow: visible;
+}
+
+.layui-table-body {
+    overflow: visible;
+}
+/* 设置下拉框的高度与表格单元相同 */
+td .layui-form-select{
+  margin-top: -10px;
+  margin-left: -15px;
+  margin-right: -15px;
+}
+
+
+.play_type_table>.layui-form{
+  height: auto;
+}
+
+#add_service_div .layui-form-label{
+  width: 140px;
+}
+
+/* #add_service_div .layui-input-block{
+  width: 100px;
+} */
+</style>
+<div class="layui-card layadmin-header">
+  <div class="layui-breadcrumb" lay-filter="breadcrumb">
+    <a>线上运营</a>
+    <a>运营公告</a>
+  </div>
+</div>
+<div class="layui-fluid">
+  <div class="layui-row layui-col-space15">
+    <div class="layui-col-md12">
+      <div class="layui-card">
+
+        <div class="layui-form layui-card-header layuiadmin-card-header-auto">
+          <div class="layui-form-item">           
+              <div class="layui-inline" style="float: right;">         
+                <button onclick="add_info()" class="layui-btn layuiadmin-btn-list"><i class="layui-icon layui-icon-add-1 layuiadmin-button-btn"></i>新增公告</button>
+              </div>
+              <div class="layui-inline" style="float: right;">
+                <button id="sync_redis" class="layui-btn layuiadmin-btn-list"><i class="layui-icon layui-icon-sync_redis-1 layuiadmin-button-btn"></i>生效</button>
+              </div>
+              <div class="layui-inline" style="float: right;">
+                <div class="layui-form" id="sync_redis_time">
+                  <span></span>
+                </div>
+              </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="layui-col-md12">
+      <div class="layui-card">
+        <div class="layui-card-body">
+            <table class="layui-hide" id="LAY-table" lay-filter="LAY-table"></table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!--新增modal-->
+<div class="layui-fluid" id="add_div" style="display:none">
+  <div class="layui-row layui-col-space15">
+    <div class="layui-col-md12">
+      <div class="layui-card">
+        <div class="layui-card-body" pad15>
+          
+          <div class="layui-form" lay-filter="notice-form">
+            
+            <div class="layui-form-item">
+                <label class="layui-form-label">介绍</label>
+                <div class="layui-form-mid">
+                    <div class="layui-row" style="color: red;">
+                        注：1、暂不支持视频和音频的上传&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2、上传图片不能大于2M
+                    </div>
+                </div>
+            </div>
+            
+            <div class="layui-form-item">
+              <label class="layui-form-label">背景颜色</label>
+              <div class="layui-input-inline">
+                <input type="text" name="background_color" autocomplete="off" placeholder="请输入背景颜色" class="layui-input" lay-verify="required">
+              </div>
+            </div>
+
+            <div class="layui-form-item">
+              <label class="layui-form-label">公告标题</label>
+              <div class="layui-input-inline">
+                <input type="hidden" name="id" value="">
+                <input type="text" name="title" autocomplete="off" placeholder="请输入公告标题" class="layui-input" lay-verify="required">
+              </div>
+            </div>
+            
+            <div class="layui-form-item">
+                <!-- <label class="layui-form-label"></label> -->
+                <div class="layui-input-inline">
+                    <script id="editor" type="text/plain" style="height:450px;width: 660px;"></script>
+                </div>
+            </div>
+
+            <div class="layui-form-item">
+              <div class="layui-input-block" style="margin-left: 39%">
+                <button class="layui-btn" lay-submit lay-filter="save_info">提交</button>
+                <button class="layui-btn layui-btn-primary" id="cancel">取消</button>
+              </div>
+            </div>
+          </div>
+          
+        </div>
+      </div>
+    </div>
+  </div>
+</div> 
+
+<script>
+  layui.use(['admin', 'table', 'form'], function(){
+  var $ = layui.$
+  ,admin = layui.admin
+  ,table = layui.table
+  ,form = layui.form
+  ,router = layui.router();
+  form.render();
+
+  UE.delEditor('editor');
+  var ue = UE.getEditor('editor');
+
+  window.add_info = function(id = ''){
+    // console.log(id);
+    if(id == ''){
+      //新增
+      index = layer.open({
+        type: 1, 
+        title: '新增公告',
+        shadeClose: true,
+        shade: 0,
+        area: ['40%', '90%'],
+        offset:'auto',
+        content: $("#add_div"), //这里content是一个普通的String
+        cancel:function(){
+          form.val('notice-form', {
+            "id":'',
+            "title":'',
+            "background_color":'',
+            "content":'',
+          })
+
+          form.render();
+        }
+      });
+    }else{
+      admin.req({
+        url: layui.setter.api+'operate-notice_get',
+        data: {'id':id},
+        type: 'post',
+        done: function(data){
+          var res = data.data;
+          //表单初始赋值
+          form.val('notice-form', {
+            "id":res.id,
+            "title":res.title,
+            "background_color":res.background_color,
+            "content":res.content,
+          })
+
+          form.render();
+
+          var ue = UE.getEditor('editor');
+
+          setTimeout(function(){
+            ue.ready(function() {
+                ue.setContent(res.content);
+            });
+          },100)
+          
+        }
+      });  
+
+      //编辑分类
+      index = layer.open({
+        type: 1, 
+        title: '编辑公告',
+        shadeClose: true,
+        shade: 0,
+        area: ['40%', '90%'],
+        offset:'auto',
+        content: $("#add_div"), //这里content是一个普通的String
+        cancel:function(){
+          form.val('notice-form', {
+            "id":'',
+            "title":'',
+            "background_color":'',
+            "content":'',
+          })
+          form.render();
+        }
+      })
+    }  
+  }
+
+  $("#cancel").click(function(){
+    layer.close(index);
+    form.val('notice-form', {
+      "id":'',
+      "title":'',
+      "background_color":'',
+      "content":'',
+    })
+
+    form.render();
+  })
+
+  //提交
+  form.on('submit(save_info)', function(data){
+    data.field.content = UE.getEditor('editor').getContent();
+    var loading = layer.msg('处理中...', {icon: 16,time:false});
+    admin.req({
+      url: layui.setter.api+'operate-notice_save',
+      data: data.field,
+      type: 'post',
+      done: function(res){
+        table.reload('LAY-table');
+        form.val('notice-form', {
+            "id":'',
+            "title":'',
+            "background_color":'',
+            "content":'',
+          })
+        form.render();
+        setTimeout(function(){
+            layer.close(loading);
+            layer.msg(res.msg, {icon: 1},function(){
+              layer.close(index);
+            })
+        },500)
+      }
+    });
+    return false;
+  });
+
+  table.render({
+    elem: '#LAY-table'
+    ,url:layui.setter.api+'operate-notice_list'
+    ,cellMinWidth: 80
+    ,cols: [[
+      {field:'id', title:'编号', unresize: false}
+      ,{field:'title',title:'公告标题',edit:'text',unresize: false}
+      ,{title:'公告内容',unresize: false,templet:function(d){
+        return '<a class="layui-btn layui-btn-xs" onclick="add_info('+d.id+')">编辑</a>&nbsp;<a class="layui-btn layui-btn-xs" href="'+d.show_html+'" target="__blank">预览</a>';
+        
+      }}
+      ,{field:'status', title:'状态', unresize: false,templet:function(d){
+        if(d.status == 1){
+          var checked = 'checked';
+        }else{
+          var checked = '';
+        }
+        return '<input type="checkbox" name="close" lay-skin="switch" lay-filter="LAY-status" value="'+d.id+'" lay-text="启用|禁用" '+checked+'>';
+      }}
+      ,{title:'展示方式',unresize: false,templet:function(d){
+        var div = '<option value=""></option>\n';
+        if(d.show_type == 1){
+          div += '<option value="1" selected>集成公告</option><option value="2">独立公告</option>';
+        }else{
+          div += '<option value="1">集成公告</option><option value="2" selected>独立公告</option>';
+        }
+        
+        return '<select name="show_type" lay-filter="show_type" lay-verify="require" lay-search  id="'+d.id+'">\n' + div+ '</select>';
+      }}
+      ,{field:'sort',title:'排序',edit:'text',unresize: false}
+      ,{field:'update_time',title:'上次编辑时间',unresize: false}
+    ]]
+    ,page: true
+    ,done:function(res, curr, count){
+      $("#sync_redis_time").find('span').text(res.sync_info.sync_redis_time);
+    }
+  }); 
+
+  // 监听修改update到表格中
+  form.on('select(show_type)', function (data) {
+      // debugger;
+      var id = data.elem.getAttribute('id');
+      var field = 'show_type';
+      var val = data.value;
+
+      if(val == ''){
+        layer.msg('此选项不能为空', {icon: 5});return;
+      }
+
+      var loading = layer.msg('处理中...', {icon: 16,time:false});
+      admin.req({
+        url: layui.setter.api+'operate-notice_save_one',
+        data: {'id':id,'field':field,'value':val},
+        type: 'post',
+        done: function(res){
+          table.reload('LAY-table');
+          setTimeout(function(){
+              layer.close(loading);
+              layer.msg(res.msg, {icon: 1})
+          },500)             
+        }
+      }); 
+  });
+
+  //监听上下线
+  form.on('switch(LAY-status)', function(obj){
+      var status = this.checked ? 1 : 0;
+      var loading = layer.msg('处理中...', {icon: 16,time:false});
+      admin.req({
+        url: layui.setter.api+"operate-notice_save_one"
+        ,data: {'id':obj.value,'value':status,'field':'status'}
+        ,done: function(data){
+          setTimeout(function(){
+              layer.close(loading);
+              layer.msg(data.msg, {icon: 1})
+          },500)
+        }
+      });      
+  });
+  
+  //监听字段编辑
+  table.on('edit(LAY-table)',function(obj){
+      var loading = layer.msg('处理中...', {icon: 16,time:false});
+      admin.req({
+        url: layui.setter.api+"operate-notice_save_one"
+        ,data: {'id':obj.data.id,'value':obj.value,'field':obj.field}
+        ,done: function(data){
+          setTimeout(function(){
+              layer.close(loading);
+              layer.msg(data.msg, {icon: 1})
+          },500)
+        }
+      });
+  })
+
+  // 生效
+  $("#sync_redis").click(function(){
+
+    var loading = layer.msg('处理中...', {icon: 16,time:false});
+    admin.req({
+      url: layui.setter.api+"operate-notice_sync_redis"
+      ,done: function(data){
+        $("#sync_redis_time").find('span').text('生效时间：'+data.data);
+        setTimeout(function(){
+          layer.close(loading);
+          layer.msg(data.msg, {icon: 1});
+        },500)
+      }
+    });
+  });
+})
+</script>

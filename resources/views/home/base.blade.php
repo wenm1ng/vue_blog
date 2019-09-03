@@ -23,19 +23,17 @@
             <img src="/res/img/logo.png">
           </a>
         </h1>
-        <div class="nav">
-          <a href="/" class="active">文章</a>
-          <a href="whisper.html">微语</a>
-          <a href="leacots.html">留言</a>
-          <a href="album.html">相册</a>
-          <a href="/about">关于</a>
+        <div class="nav" id="web_title">
+          <a href="/" class="article">文章</a>
+          <a href="/whisper" class="whisper">微语</a>
+          <a href="/message" class="message">留言</a>
+          <a href="/about" class="about">关于</a>
         </div>
         <ul class="layui-nav header-down-nav" id="title">
-          <li class="layui-nav-item"><a href="/" class="active">文章</a></li>
-          <li class="layui-nav-item"><a href="whisper.html">微语</a></li>
-          <li class="layui-nav-item"><a href="leacots.html">留言</a></li>
-          <li class="layui-nav-item"><a href="album.html">相册</a></li>
-          <li class="layui-nav-item"><a href="/about">关于</a></li>
+          <li class="layui-nav-item"><a href="/" class="article">文章</a></li>
+          <li class="layui-nav-item"><a href="whisper.html" class="whisper">微语</a></li>
+          <li class="layui-nav-item"><a href="leacots.html" class="message">留言</a></li>
+          <li class="layui-nav-item"><a href="/about" class="about">关于</a></li>
         </ul>
         <p class="welcome-text">
           欢迎来到<span class="name">小明</span>博客~&nbsp;&nbsp;
@@ -55,7 +53,12 @@
 @yield('script')
 <script>
     // console.log(window.axios.defaults.headers.common['X-CSRF-TOKEN']);
-    
-
+    href = window.location.href;
+    arr = href.split('/');
+    if(arr[3] == ''){
+      $('.article').addClass('active');
+    }else{
+      $('.'+arr[3]).addClass('active');
+    }
 </script>
 </html>

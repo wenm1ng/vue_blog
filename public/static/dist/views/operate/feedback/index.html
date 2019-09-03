@@ -1,0 +1,149 @@
+
+<title>用户反馈</title>
+<style>
+/* 防止下拉框的下拉列表被隐藏---必须设置--- */
+.layui-table-cell {
+  height: auto;
+            /*空白会被浏览器忽略*/
+  white-space: normal;
+            /*允许长单词换行到下一行*/
+  word-wrap: break-word;
+            /*允许在单词内换行*/
+  word-break: break-all;
+  overflow: visible;
+  min-height: 28px;
+}
+
+.layui-table-box {
+    overflow: visible;
+}
+
+.layui-table-body {
+    overflow: visible;
+}
+/* 设置下拉框的高度与表格单元相同 */
+td .layui-form-select{
+  margin-top: -10px;
+  margin-left: -15px;
+  margin-right: -15px;
+}
+
+
+.play_type_table>.layui-form{
+  height: auto;
+}
+
+#add_service_div .layui-form-label{
+  width: 140px;
+}
+
+/* #add_service_div .layui-input-block{
+  width: 100px;
+} */
+</style>
+<div class="layui-card layadmin-header">
+  <div class="layui-breadcrumb" lay-filter="breadcrumb">
+    <a>线上运营</a>
+    <a>用户反馈</a>
+  </div>
+</div>
+<div class="layui-fluid">
+  <div class="layui-row layui-col-space15">
+    <div class="layui-col-md12">
+      <div class="layui-card">
+        <div class="layui-form layui-card-header layuiadmin-card-header-auto" lay-filter="app-content-list">
+          <div class="layui-form-item">
+            <div class="layui-input-inline">
+                <input type="text" name="user" placeholder="用户ID/名称" autocomplete="off" class="layui-input">
+            </div>           
+            <div class="layui-input-inline">
+                <button class="layui-btn layuiadmin-btn-list" lay-submit="" lay-filter="LAY-search">
+                    <i class="layui-icon layui-icon-search layuiadmin-button-btn"></i>
+                </button>
+            </div>
+          <div class="layui-inline" style="float: right;">         
+            <button class="layui-btn layuiadmin-btn-list" onclick="exportExcel()"><i class="layui-icon layui-icon-table layuiadmin-button-btn"></i>导出Excel</button>
+          </div>                        
+          </div>
+        </div>
+        <div class="layui-card-body">
+            <table class="layui-hide" id="LAY-table" lay-filter="LAY-table"></table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+layui.use(['admin', 'table', 'form'], function(){
+  var $ = layui.$
+  ,admin = layui.admin
+  ,table = layui.table
+  ,excel = layui.excel
+  ,form = layui.form;
+  form.render();
+  var export_data = [];
+  //监听搜索
+  form.on('submit(LAY-search)', function(data){
+      table.reload('LAY-table', {
+          where:{
+            user: data.field.user,
+          }
+          ,page: {
+              curr: 1 //重新从第 1 页开始
+          }
+          ,done:function(res, curr, count){
+            export_data = res.data;
+          }
+      });
+  });
+
+  table.render({
+    elem: '#LAY-table'
+    ,url:layui.setter.api+'operate-player_feedback_list'
+    ,cellMinWidth: 80
+    ,cols: [[
+      {field:'id',width:80, title:'ID', unresize: false}
+      ,{field:'uid',width:80, title:'用户ID', unresize: false}
+      ,{field:'nickName',width:150, title:'用户昵称', unresize: false}
+      ,{field:'content', title:'反馈内容', unresize: false}
+      ,{field:'create_time',width:200, title:'时间', unresize: false}
+    ]]
+    ,page: true
+    ,done:function(res, curr, count){
+      export_data = res.data;
+    }     
+  });
+
+  //导出Excel
+  window.exportExcel = function(){
+
+      let filed_data = {id: 'id',uid: 'uid',nickName: 'nickName',content: 'content',create_time: 'create_time'}
+      let filed_title = { id: "ID",uid: "用户ID",nickName: "用户昵称",content: "反馈内容",create_time: "时间"}
+      exportFile('用户反馈',filed_data,filed_title,export_data)
+
+  }
+  //表格导出
+  function exportFile(describe,filed_data,filed_title,export_data) {
+    layer.confirm(describe+'导出?', {icon: 3, title:'提示(只导出当前页面数据)'}, function(index){
+        let data = export_data;
+        // 重点！！！如果后端给的数据顺序和映射关系不对，请执行梳理函数后导出
+        data = excel.filterExportData(data, filed_data);
+        // 重点2！！！一般都需要加一个表头，表头的键名顺序需要与最终导出的数据一致
+        data.unshift(filed_title);
+
+        var timestart = Date.now();
+        excel.exportExcel({
+          sheet1: data
+        }, describe+'-' + new Date().toLocaleString() + '.xlsx', 'xlsx');
+        var timeend = Date.now();
+
+        var spent = (timeend - timestart) / 1000;
+        layer.alert('单纯导出耗时 '+spent+' s',function(){
+          layer.closeAll();
+        });
+        
+    });
+
+  }  
+});
+</script>

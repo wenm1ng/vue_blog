@@ -1,0 +1,180 @@
+<title>玩家信息</title>
+<style>
+/* 防止下拉框的下拉列表被隐藏---必须设置--- */
+.layui-table-cell {
+    height: auto;
+    /*空白会被浏览器忽略*/
+    white-space: normal;
+    /*允许长单词换行到下一行*/
+    word-wrap: break-word;
+    /*允许在单词内换行*/
+    word-break: break-all;
+    overflow: visible;
+    min-height: 28px;
+}
+</style>
+
+<div class="layui-card layadmin-header">
+    <div class="layui-breadcrumb" lay-filter="breadcrumb">
+        <a>线上运营</a>
+        <a>玩家信息</a>
+    </div>
+</div>
+<div class="layui-fluid">
+    <div class="layui-row layui-col-space15">
+        
+        <div class="layui-col-md12">
+            <div class="layui-card">
+                <div class="layui-form layui-card-header layuiadmin-card-header-auto" lay-filter="app-content-list">
+                    <div class="layui-form-item">
+                        <div class="layui-input-inline">
+                            <input type="text" name="id" placeholder="玩家ID" autocomplete="off" class="layui-input">
+                        </div>
+
+                        <div class="layui-input-inline">
+                            <input type="text" name="nickName" placeholder="用户名" autocomplete="off" class="layui-input">
+                        </div>
+
+                        <div class="layui-input-inline">
+                            <button class="layui-btn layuiadmin-btn-list" lay-submit="" lay-filter="LAY-search">
+                                <i class="layui-icon layui-icon-search layuiadmin-button-btn"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="layui-col-md12">
+            <div class="layui-card">
+                <div class="layui-card-body">
+                    <table class="layui-hide" id="LAY-table-player" lay-filter="LAY-table-player"></table>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script type="text/html" id="LAY-player-index-choose-money">
+    <a class="layui-btn layui-btn-xs" lay-event="edit">修改金币</a>
+    <a class="layui-btn layui-btn-xs" lay-event="edit1">清除房间数据</a>
+</script>
+
+<script>
+    layui.use(['admin', 'table', 'form', 'view'], function(){
+        var $ = layui.$
+        ,admin = layui.admin
+        ,table = layui.table
+        ,form = layui.form
+        ,view = layui.view;
+        form.render();
+
+        // 监听搜索
+        form.on('submit(LAY-search)', function(data){
+            table.reload('LAY-table-player', {
+                where:{
+                    id:data.field.id,
+                    nickName:data.field.nickName,
+                }
+                ,page: {
+                    curr: 1 //重新从第 1 页开始
+                }
+                ,done:function(){
+                    form.render();
+                }
+            });
+        });
+
+        table.render({
+            elem: '#LAY-table-player'
+            ,url:layui.setter.api+'operate-play_list'
+            ,cellMinWidth: 80
+            ,cols: [[
+                {field:'id', title:'玩家ID', unresize: false}
+                ,{field:'nickName',title:'用户昵称',unresize: false}
+                ,{field:'phone',title:'手机号',unresize: false}
+                ,{field:'user_type_name',title:'用户类型',unresize: false}
+                ,{field:'image',title:'头像',unresize: false,templet:function(d){
+                    div = '';
+                    div += '<div style="display: -webkit-inline-box;cursor:pointer" title="头像">';
+                    div += '<img style="height:50px;" src="'+d.image+'" onclick="show_pic(this)">'
+                    div += '</div>';
+                    return div;
+                }}
+                ,{field:'sex_name',title:'性别',unresize: false}
+                // ,{field:'coverImage',title:'用户背景图',unresize: false}
+                ,{field:'goldNum',title:'金币数量',unresize: false}
+                ,{field:'create_time',title:'创建时间',unresize: false}
+                ,{field:'id',title:'操作',width:200,unresize: true,toolbar:'#LAY-player-index-choose-money'}
+            ]]
+            ,page: true
+            ,done:function(res, curr, count){
+            }
+        });
+
+        // 查看图片
+        window.show_pic = function (dom){
+            var arr={
+                "data":[],
+                // "start": $(dom).index(),
+            }
+            arr['data'].push({"src":dom.src})
+            layer.photos({
+                photos: arr
+            });
+        }
+
+        // 监听工具条
+        table.on('tool(LAY-table-player)', function(obj){
+            var data = obj.data;
+            if(obj.event === 'edit'){
+                test = data;
+                admin.popup({
+                    title: '修改金币'
+                    ,area: ['500px', '400px']
+                    ,id: 'LAY-player-edit'
+                    ,success: function(layero, index){
+                        view(this.id).render('operate/play/edit', data).done(function(){
+                            form.render(null, 'layuiadmin-form-edit');
+                            // 监听提交
+                            form.on('submit(LAY-user-back-submit)', function(data){
+                                var field = data.field; //获取提交的字段
+                                field.id = obj.data.id;
+                                console.log(field);
+                                //提交 Ajax 成功后，关闭当前弹层并重载表格
+                                var loading = layer.msg('处理中...', {icon: 16,time:false});
+                                admin.req({
+                                    url: layui.setter.api+"operate-play_edit"
+                                    ,data: field
+                                    ,done: function(data){
+                                        // console.log(data);
+                                        setTimeout(function(){
+                                            layer.close(loading);
+                                            layer.msg(data.msg, {icon: 1});
+                                            layui.table.reload('LAY-table-player'); //重载表格
+                                            layer.close(index); //执行关闭
+                                        },500)
+                                    }
+                                });
+                            });
+                        });
+                    }
+                });
+            }else if(obj.event === 'edit1'){
+                console.log(data);
+                var loading = layer.msg('处理中...', {icon: 16,time:false});
+                admin.req({
+                    url: layui.setter.api+"operate-play_edit_redis"
+                    ,data: {uid:data.id}
+                    ,done: function(data){
+                        setTimeout(function(){
+                            layer.close(loading);
+                            layer.msg(data.msg, {icon: 1});
+                        },500)
+                    }
+                });
+            }
+        });
+    })
+</script>

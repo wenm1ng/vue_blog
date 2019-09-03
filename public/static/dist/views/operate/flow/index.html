@@ -1,0 +1,87 @@
+<title>流水查询</title>
+
+<div class="layui-card layadmin-header">
+    <div class="layui-breadcrumb" lay-filter="breadcrumb">
+        <a>线上运营</a>
+        <a>流水查询</a>
+    </div>
+</div>
+<div class="layui-fluid">
+    <div class="layui-row layui-col-space15">
+
+        <div class="layui-col-md12">
+            <div class="layui-card">
+                <div class="layui-form layui-card-header layuiadmin-card-header-auto" lay-filter="app-content-list">
+                    <div class="layui-form-item">
+                        <div class="layui-input-inline">
+                            <input type="text" name="uid" placeholder="玩家ID" autocomplete="off" class="layui-input">
+                        </div>
+
+                        <div class="layui-input-inline">
+                            <button class="layui-btn layuiadmin-btn-list" lay-submit="" lay-filter="LAY-search">
+                                <i class="layui-icon layui-icon-search layuiadmin-button-btn"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="layui-col-md12">
+            <div class="layui-card">
+                <div class="layui-card-body">
+                    <table class="layui-hide" id="LAY-table-flow" lay-filter="LAY-table-flow"></table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    layui.use(['admin', 'table', 'form'], function(){
+        var $ = layui.$
+        ,admin = layui.admin
+        ,table = layui.table
+        ,form = layui.form
+        ,router = layui.router();
+
+        form.render();
+
+        // 监听搜索
+        form.on('submit(LAY-search)', function(data){
+            table.reload('LAY-table-flow', {
+                where:{
+                    uid: data.field.uid,
+                }
+                ,page: {
+                    curr: 1 //重新从第 1 页开始
+                }
+                ,done:function(){
+                    form.render();
+                }
+            });
+        });
+
+        table.render({
+            elem: '#LAY-table-flow'
+            ,url:layui.setter.api+'operate-flow_list'
+            ,cellMinWidth: 80
+            ,cols: [[
+                {field:'id', title:'流水ID', unresize: false}
+                ,{field:'uid',title:'用户id',unresize: false}
+                ,{field:'user_type_name',title:'用户类型',unresize: false}
+                ,{field:'type_name',title:'流水类型',unresize: false}
+                ,{field:'game_id',title:'游戏id',unresize: false}
+                ,{field:'venue_id',title:'场次id',unresize: false}
+                ,{field:'service_id',title:'服务器ID',unresize: false}
+                ,{field:'alter_value',title:'变动值',unresize: false}
+                ,{field:'curr_value',title:'变动后值',unresize: false}
+                ,{field:'alter_time',title:'变动时间',width:180,unresize: false}
+                ,{field:'create_time',title:'创建时间',width:180,unresize: false}
+            ]]
+            ,page: true
+            ,done:function(res, curr, count){
+            }
+        });
+    })
+</script>

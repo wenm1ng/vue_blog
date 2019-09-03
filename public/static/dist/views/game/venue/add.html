@@ -1,0 +1,57 @@
+<div class="layui-form" lay-filter="layuiadmin-form-add" style="padding: 20px 30px 0 0;">
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">场次id</label>
+        <div class="layui-input-inline">
+            <input type="text" name="venue_id" value="" lay-verify="number" placeholder="请输入id" autocomplete="off" class="layui-input">
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">场次名称</label>
+        <div class="layui-input-inline">
+            <input type="text" name="venue_name" value="" lay-verify="required" placeholder="请输入昵称" autocomplete="off" class="layui-input">
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">所属游戏</label>
+        <div class="layui-input-inline">
+            <select id='game_select' name="game_id" lay-verify="" lay-search>
+                <!-- <option value="010">layer</option>
+                <option value="021">form</option>
+                <option value="0571" selected>layim</option> -->
+            </select>     
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label"></label>
+        <div class="layui-input-inline" style="text-align: center;margin-top: 15px;">
+            <input type="button" lay-submit lay-filter="LAY-user-back-submit" value="确认" class="layui-btn">
+        </div>
+    </div>
+</div>
+
+<script>
+    layui.use(['admin', 'form'], function(){
+        var $ = layui.$
+        ,admin = layui.admin
+        ,form = layui.form;
+
+        admin.req({
+            url:layui.setter.api+'game-game_list',
+            data: {},
+            done: function(data){
+                var cop = '<option value="0">可输入</option>';
+                if(data.code == 0){
+                    $.each(data.data,function(i,val){
+                        cop += '<option value="'+val['game_id']+'">'+val['name']+'</option>';
+                    });
+                }
+                $("[name='game_id']").append(cop);
+                form.render();
+                cop = '';
+                return false;
+            }
+        });
+    });
+</script>

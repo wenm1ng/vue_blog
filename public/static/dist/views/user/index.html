@@ -1,0 +1,85 @@
+
+<title>仪表盘</title>
+
+<div class="layui-card layadmin-header">
+  <div class="layui-breadcrumb" lay-filter="breadcrumb">
+    <a>主页</a>
+  </div>
+</div>
+
+  <div class="layui-fluid">
+    <div class="layui-row layui-col-space15">
+      
+      <div class="layui-col-sm6 layui-col-md3">
+        <div class="layui-card">
+          <div class="layui-card-header">
+            新增粉丝
+            <span class="layui-badge layui-bg-blue layuiadmin-badge">日</span>
+          </div>
+          <div class="layui-card-body layuiadmin-card-list">
+            <p class="layuiadmin-big-font new_fans">0</p>
+            <p>
+              粉丝总数 
+              <span class="layuiadmin-span-color"><i class="layui-inline layui-icon layui-icon-user"></i> <span class="all_fans">0</span></span>
+            </p>
+          </div>
+        </div>
+      </div>
+      <div class="layui-col-sm6 layui-col-md3">
+        <div class="layui-card">
+          <div class="layui-card-header">
+            今日收益（元）
+            <span class="layui-badge layui-bg-cyan layuiadmin-badge">日</span>
+          </div>
+          <div class="layui-card-body layuiadmin-card-list">
+            <p class="layuiadmin-big-font today_income">0</p>
+            <p>
+              昨日收益 
+              <span class="layuiadmin-span-color"><i class="layui-inline layui-icon layui-icon-face-smile-b"></i> <span class="yesterday_income">0</span></span>
+            </p>
+          </div>
+        </div>
+      </div>
+      <div class="layui-col-sm6 layui-col-md3">
+        <div class="layui-card">
+          <div class="layui-card-header">
+            可提现余额（元）
+            <span class="layui-badge layui-bg-green layuiadmin-badge">总</span>
+          </div>
+          <div class="layui-card-body layuiadmin-card-list">
+
+            <p class="layuiadmin-big-font withdraw_money">0</p>
+            <p>
+              总余额
+              <span class="layuiadmin-span-color "><i class="layui-inline layui-icon layui-icon-rmb"></i> <span class="wallet_money">0</span></span>
+            </p>
+          </div>
+        </div>
+      </div>
+      <div class="layui-col-sm6 layui-col-md3">
+        <div class="layui-card">
+          <div class="layui-card-header">
+            累计收益（元）
+            <span class="layui-badge layui-bg-orange layuiadmin-badge">总</span>
+          </div>
+          <div class="layui-card-body layuiadmin-card-list">
+
+            <p class="layuiadmin-big-font all_wallet_money">0</p>
+            <p>
+              分销累计收益
+              <span class="layuiadmin-span-color"><i class="layui-inline layui-icon layui-icon-rmb"></i> <span class="all_share_income">0</span></span>
+            </p>
+          </div>
+        </div>
+      </div>   
+
+    </div>
+  </div>
+<!--   
+<script>
+  layui.use(['admin', 'table', 'element', 'form', 'laydate'], function(){
+      var $ = layui.$
+      ,admin = layui.admin;
+      // location.hash='/user/nomal';
+});
+</script> -->
