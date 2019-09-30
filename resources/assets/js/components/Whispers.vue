@@ -1,5 +1,5 @@
 <template>
-  <div class="item-box" v-if="list">
+  <div class="item-box" v-if="list.length">
     <div v-for="val,index in list">
       <div class="item">
         <div class="whisper-title">
@@ -13,8 +13,8 @@
         </div>
         <div class="op-list">
           <!-- <p class="like"><i class="layui-icon layui-icon-praise"></i><span>1200</span></p>  -->
-          <p class="edit"><i class="layui-icon layui-icon-reply-fill"></i><span  v-on:click="open(index+1)">{{val.comment_count}}</span></p>
-          <p class="off" v-if="!comment_show || comment_show != index+1" v-on:click="open(index+1)"><span>展开</span><i class="layui-icon layui-icon-down"></i></p>
+          <p class="edit"><i class="layui-icon layui-icon-reply-fill"></i><span  v-on:click="open(val.id)">{{val.comment_count}}</span></p>
+          <p class="off" v-if="!comment_show || comment_show != val.id" v-on:click="open(val.id)"><span>展开</span><i class="layui-icon layui-icon-down"></i></p>
           <p class="off" v-else v-on:click="open(0)"><span>收起</span><i class="layui-icon layui-icon-up"></i></p>
         </div>
       </div>
@@ -35,17 +35,54 @@
               </div>
             </form>
           </div>
-          <div class="list-cont" v-for="v,k in val.comment">
+          <!-- <div class="list-cont" v-for="v,k in val.child">
             <div class="cont" style="border-bottom: 1px solid #e5e5e5;">
               <div class="img">
-                <img src="/res/img/user-default.jpg" alt="" style="width:50px;height:50px">
+                <img src="/res/img/user-default.jpg" alt="" style="width:50px;height:50px" v-if="v.user_id != 1" >
+                <img src="/res/img/header.png" alt="" style="width:50px;height:50px" v-else >
               </div>
               <div class="text">
-                <p class="tit"><span class="name">{{v.user_name}}</span><span class="data">{{v.create_time}}</span></p>
+                <p class="tit"><span class="name">{{ val.user_name }}</span><span class="data">{{ val.create_time }}</span></p>
+                <p class="ct">{{ val.content }}</p>
+              </div>
+            </div>
+            <div class="cont" style="border-bottom: none">
+              <div class="img">
+                <img src="/res/img/user-default.jpg" alt="" style="width:50px;height:50px" v-if="v.user_id != 1" >
+                <img src="/res/img/header.png" alt="" style="width:50px;height:50px" v-else >
+              </div>
+              <div class="text">
+                <p class="tit"><span class="name" v-if="v.user_id != 1">{{v.user_name}}</span><span class="name" v-else>{{v.user_name}}&nbsp;&nbsp;回复&nbsp;&nbsp;{{v.to_user_name}}</span><span class="data">{{v.create_time}}</span></p>
                 <p class="ct">{{v.content}}</p>
               </div>
             </div>
+          </div> -->
+          <div v-if="comment_list[val.id]">
+            <div class="list-cont" style="border-bottom: 1px solid #e5e5e5;" v-for="v in comment_list[val.id]">
+                    
+              <div class="cont" style="border-bottom: none">
+                <div class="img">
+                      <img src="/res/img/header.png" alt="" v-if="v.user_id == 1">
+                  <img src="/res/img/user-default.jpg" alt="" v-if="v.user_id != 1" style="width:50px;height:50px">
+                    </div>
+                <div class="text">
+                  <p class="tit"><span class="name">{{ v.user_name }}</span><span class="data">{{ v.create_time }}</span></p>
+                  <p class="ct">{{ v.content }}</p>
+                </div>
+              </div>
+              <div class="cont" style="border-bottom: none" v-for="child in v.child">
+                    <div class="img">
+                      <img src="/res/img/header.png" alt="" v-if="child.user_id == 1">
+                      <img src="/res/img/user-default.jpg" alt="" v-if="child.user_id != 1" style="width:50px;height:50px">
+                    </div>
+                    <div class="text">
+                      <p class="tit"><span class="name">{{ child.user_name }}&nbsp;&nbsp;回复&nbsp;&nbsp;{{ child.to_user_name }}</span><span class="data">{{ child.create_time }}</span></p>
+                      <p class="ct">{{ child.content }}</p>
+                    </div>
+                  </div>
+            </div>
           </div>
+          
         </div>
       </transition>
     </div>
@@ -73,9 +110,20 @@
                 }
             })
             this.index();
+            var that = this;
+            setTimeout(function(){
+              $.each(that.list,function(index, el) {
+                that.comment_list[el.id] = [];
+                that.comment_time_list[el.id] = 0;
+              });
+              console.log(that.comment_list);
+              console.log(that.comment_time_list);
+            },2000)
+            
         },
         mounted() {
             var self = this;
+
             var is_scroll = true;
             $(window).scroll(function(){
                 let scrollTop = $(this).scrollTop();
@@ -85,7 +133,7 @@
                 let windowHeight = $(this).height();
 
                 // if(scrollTop + windowHeight === scrollHeight){
-                if(scrollHeight - scrollTop <= 1479){
+                if(scrollHeight - scrollTop <= 1479 + self.comment_height){
                     if(is_scroll && self.font_show == false){
                         // console.log(is_scroll);
                         is_scroll = false;
@@ -123,6 +171,11 @@
                 font_show:false,
                 comment_show:false,
                 whisper_id_list:[],
+                comment_height:0,
+                comment_list:[],
+                comment_time_list:[],
+                comment_page:1,
+                content:''
             }
         },
         methods:{
@@ -131,6 +184,7 @@
                 let url = '/whisper/list';
                 axios.post(url,{page:this.page},{emulateJSON:true}).then(function(res){
                     that.list = res.data.data;
+                    that.comment_list.push(res.data.comment_list);
                     for (var i = 0; i < res.data.data.length; i++) {
                         that.whisper_id_list.push(res.data.data[i]['id']);
                     }
@@ -143,8 +197,37 @@
                     that.temp_list = res.data.data;
                 });
             },
-            open:function(index){
-              this.comment_show = index;
+            open:function(id){
+              // console.log(this.comment_list);
+              // console.log(id);
+              this.comment_show = id;
+              if(id > 0 && this.comment_time_list[id] < 1){
+                let that = this;
+                let url = '/whisper/comment_list';
+                $.ajax({
+                  url:url,
+                  type:'POST',
+                  async:false,
+                  data:{page:that.comment_page,id:id},
+                  dataType:'json',
+                  success:function(res){
+                    that.comment_list[id] = res.data;
+                    that.comment_time_list[id]++;
+                  }
+                });
+                // axios.post(url,{page:this.comment_page,id:id},{emulateJSON:true}).then(function(res){
+                //     that.comment_list[id] = res.data.data;
+                //     that.comment_time_list[id]++;
+                // });
+              }
+              // var page = this.page;
+              // var height = this.comment_list[page-1][(index-1)+(page-1)*10].length;
+              // if(index == 0){
+              //   this.comment_height -= height;
+              // }else{
+              //   this.comment_height += height;
+              // }
+              
             },
             post_comment:function(id,index){
               let that = this;
@@ -159,6 +242,11 @@
                   that.content = '';
                 }
               });
+            },
+            border_bottom:function(user_id){
+              if(user_id == 1){
+                return 'border-bottom:1px solid #e5e5e5';
+              }
             }
             // created:function(){
             //     clearTimeout(this.timer);

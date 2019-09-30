@@ -21,8 +21,16 @@ Route::group(['namespace' => 'Home'],function(){
 	Route::get('/whisper',function(){
 		return view('home.whisper');
 	});
-	Route::post('/whisper/list','WhisperController@list_info');//获取微语列表及评论
+	Route::post('/whisper/list','WhisperController@list_info');//获取微语列表
 	Route::post('/whisper/comment','WhisperController@comment');//进行评论
+	Route::post('/whisper/comment_list','WhisperController@comment_list');//微语评论列表
+
+	//留言
+	Route::get('/message',function(){
+		return view('home.message');
+	});
+	Route::post('/message/list','MessageController@list_info');//获取留言列表
+
 });
 
 Route::get('/',function(){
@@ -67,6 +75,10 @@ Route::group(['namespace' => 'Admin'],function(){
 	Route::post('/admin/whisper-save_info','WhisperController@save_info');
 	//获取微语详细内容
 	Route::post('/admin/whisper-get_info','WhisperController@get_info');
+	//微语评论列表
+	Route::get('/admin/whisper-comment_list','WhisperController@comment_list');
+	//微语回复评论
+	Route::post('/admin/whisper-comment_save','WhisperController@comment_save');
 });
 
 

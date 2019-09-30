@@ -32,7 +32,7 @@
         <ul class="layui-nav header-down-nav" id="title">
           <li class="layui-nav-item"><a href="/" class="article">文章</a></li>
           <li class="layui-nav-item"><a href="whisper.html" class="whisper">微语</a></li>
-          <li class="layui-nav-item"><a href="leacots.html" class="message">留言</a></li>
+          <li class="layui-nav-item"><a href="/message" class="message">留言</a></li>
           <li class="layui-nav-item"><a href="/about" class="about">关于</a></li>
         </ul>
         <p class="welcome-text">
@@ -52,6 +52,13 @@
   <!-- <script src="https://unpkg.com/element-ui/lib/index.js"></script> -->
 @yield('script')
 <script>
+    token = $('meta[name="X-CSRF-TOKEN"]').attr('content');
+    $.ajaxSetup({ //发送请求前触发
+        beforeSend: function (xhr) { //可以设置自定义标头
+            xhr.setRequestHeader('X-CSRF-TOKEN', token);
+        }
+    })
+
     // console.log(window.axios.defaults.headers.common['X-CSRF-TOKEN']);
     href = window.location.href;
     arr = href.split('/');

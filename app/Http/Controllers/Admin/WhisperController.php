@@ -112,4 +112,58 @@ class WhisperController extends BaseController
 
 		comm_return_data($info);
 	}
+
+	//评论列表
+	public function comment_list(Request $request){
+		if(empty($request->input('id'))){
+			comm_return_error('参数错误');
+		}
+
+		$id = $request->input('id');
+
+		$list = DB::table('whisper_comment as a')
+		->select(DB::raw('blog_a.whisper_id,blog_a.user_name,blog_a.id,blog_a.content,blog_a.create_time,blog_c.content as reply_content'))
+		->leftJoin('whisper_comment as c',function($join){
+			$join->on('c.link_comment_id','=','a.id')
+			->where('c.user_id','=',1);
+		})
+		->where('a.whisper_id','=',$id)
+		->where('a.user_id','<>',1)
+		->get()->toArray();
+		
+
+		$list = obj_to_array($list);
+
+		comm_return_data($list);
+	}
+
+	//回复留言
+	public function comment_save(Request $request){
+		$id = $request->input('id');
+		$content = $request->input('content');
+		$whisper_id = $request->input('whisper_id');
+		if(empty($id) || empty($content) || empty($whisper_id)){
+			comm_return_error('参数错误');
+		}
+
+		$info = Db::table('whisper_comment')->where('id','=',$id)->first();
+
+		$info = obj_to_array($info);
+
+		$data['content']         = $content;
+		$data['whisper_id']      = $whisper_id;
+		$data['link_comment_id'] = $id;
+		$data['user_id']         = 1;
+		$data['user_name']       = '文明';
+		$data['to_user_name']    = $info['user_name'];
+		$data['create_time']     = date('Y-m-d H:i:s');
+		$result = DB::table('whisper_comment')->insert($data);
+
+		//评论数加1
+		Db::update("update blog_whisper set comment_count = comment_count + 1 where id = {$whisper_id}");
+
+		if($result != 1) comm_return_error('失败');
+
+		comm_return_data();
+	}
 }

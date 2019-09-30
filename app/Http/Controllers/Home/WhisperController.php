@@ -19,18 +19,57 @@ class WhisperController extends BaseController
 		->get()->toArray();
 		$list = obj_to_array($list);
 
-		foreach ($list as $key => $val) {
-			$comment_list = DB::table('whisper_comment')->where('whisper_id','=',$val['id'])->orderBy('id','desc')->get()->toArray();
-			$comment_list = obj_to_array($comment_list);
-			$list[$key]['comment'] = $comment_list;
-		}
+		$comment_list_all = array();
+		// foreach ($list as $key => $val) {
+		// 	$comment_list = DB::table('whisper_comment')->where('whisper_id','=',$val['id'])->orderBy('id')->get()->toArray();
+		// 	$comment_list = obj_to_array($comment_list);
+		// 	$comment_list_all[$key+($page-1)*$this->limit] = $comment_list;
+		// 	// print_r($comment_list);
+		// 	$arr = array();
+		// 	foreach ($comment_list as $k => $v) {
+		// 		if($v['is_reply'] == 0){
+		// 			$arr['c_'.$v['id']] = $v;
+		// 		}else{
+		// 			$arr['c_'.$v['link_comment_id']]['child'][] = $v;
+		// 		}
+		// 	}
+			
+		// 	$list[$key]['child'] = $arr;
+		// }
 
+
+		// print_r($list);exit;
 		if(empty($list)){
-			return response()->json(['status'=>0,'msg'=>'暂无数据','data'=>array()]);
+			return response()->json(['status'=>0,'msg'=>'暂无数据','data'=>array(),'comment_list'=>$comment_list_all]);
 		}else{
-			return response()->json(['status'=>1,'msg'=>'返回成功','data'=>$list]);
+			return response()->json(['status'=>1,'msg'=>'返回成功','data'=>$list,'comment_list'=>$comment_list_all]);
 		}
 		
+	}
+
+	//微语评论列表
+	public function comment_list(Request $request){
+		$page = $request->page;
+		$id = $request->id;
+
+		$comment_list = DB::table('whisper_comment')->where('whisper_id','=',$id)->orderBy('id')->get()->toArray();
+		$comment_list = obj_to_array($comment_list);
+		// print_r($comment_list);
+		// print_r(Db::getQueryLog());
+		$arr = array();
+		foreach ($comment_list as $k => $v) {
+			if($v['is_reply'] == 0){
+				$arr['c_'.$v['id']] = $v;
+			}else{
+				$arr['c_'.$v['link_comment_id']]['child'][] = $v;
+			}
+		}
+
+		if(empty($comment_list)){
+			return response()->json(['status'=>0,'msg'=>'暂无数据','data'=>array()]);
+		}else{
+			return response()->json(['status'=>1,'msg'=>'返回成功','data'=>$comment_list]);
+		}
 	}
 
 	//微语评论
